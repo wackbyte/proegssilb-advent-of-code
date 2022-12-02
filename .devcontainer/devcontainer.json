@@ -2,7 +2,7 @@
 // README at: https://github.com/devcontainers/templates/tree/main/src/rust
 {
 	"name": "AoC Development Container",
-	"image": "hub.docker.com/_/rust:1-slim-bullseye",
+	"image": "rust:1-slim",
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
