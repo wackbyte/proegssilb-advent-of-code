@@ -1,14 +1,8 @@
 use aoc_runner_derive::{aoc_generator, aoc};
 use itertools::Itertools;
 
-
-#[derive(Default, Clone)]
-pub struct BackpackCalories {
-    total_calories: u64,
-}
-
 #[aoc_generator(day1)]
-pub fn input_generator(input: &str) -> Vec<BackpackCalories> {
+pub fn input_generator(input: &str) -> Vec<u64> {
     input
         .lines()
         .map(|line| {
@@ -19,21 +13,26 @@ pub fn input_generator(input: &str) -> Vec<BackpackCalories> {
         })
         .group_by(|x| x.is_some())
         .into_iter()
-        .filter(|(key, _)| *key == true )
+        .filter(|(key, _)| *key )
         .map(|(_, group)| {
             let items : Vec<u64> = group.map(|i| i.unwrap()).collect();
-            BackpackCalories {
-                total_calories: items.iter().sum()
-            }
+            items.iter().sum()
         }).collect()
 }
 
 #[aoc(day1, part1)]
-pub fn solve_part1(input: &Vec<BackpackCalories>) -> u64 {
+pub fn solve_part1(input: &Vec<u64>) -> u64 {
     (*input)
         .clone()
         .into_iter()
-        .max_by_key(|bc| bc.total_calories)
+        .max()
         .unwrap_or_default()
-        .total_calories
+}
+
+#[aoc(day1, part2)]
+pub fn solve_part2(input: &Vec<u64>) -> u64 {
+    let mut max_backpacks = (*input)
+        .clone();
+    max_backpacks.sort_by_key(|i| -(*i as i64));
+    max_backpacks[0..3].iter().sum()
 }
