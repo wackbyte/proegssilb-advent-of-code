@@ -8,10 +8,13 @@ type CampRange = RangeInclusive<i32>;
 #[aoc_generator(day4)]
 pub fn input_generator(input: &str) -> Vec<(CampRange, CampRange)> {
     input.lines()
-        .map(|l| l.split(',').map(|r| {
-            let (a, b) = r.split('-').collect_tuple::<(&str, &str)>().unwrap_or_else(|| panic!("Invalid range found: {}", r));
-            RangeInclusive::new(a.parse().unwrap(), b.parse().unwrap())
-        }).collect_tuple().unwrap())
+        .map(|l| {
+            let (a, b, c, d) = l.split(&[',', '-'])
+                .map(|s| s.parse().unwrap())
+                .collect_tuple()
+                .unwrap();
+            (CampRange::new(a, b), CampRange::new(c, d))
+        })
         .collect_vec()
 }
 
