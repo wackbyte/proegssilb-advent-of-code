@@ -1,6 +1,6 @@
+#[allow(unused_imports)]
 use std::cmp::max;
-
-use aoc_runner_derive::{aoc_generator, aoc};
+use aoc_runner_derive::aoc;
 use itertools::Itertools;
 
 // pub type Day8Gen = Vec<i32>;
