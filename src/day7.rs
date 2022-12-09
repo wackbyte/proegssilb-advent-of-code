@@ -18,7 +18,6 @@ type Path = Vec<String>;
 
 #[derive(Debug)]
 struct FileInfo {
-    name: String,
     size: u64,
 }
 
@@ -121,12 +120,12 @@ fn build_fs_step(term: &mut Terminal, cmd: &DataLine) {
             term.current_dir.push(subdir.clone());
         },
         DataLine::CommandLs => {},
-        DataLine::ListingFile(size, name) => {
+        DataLine::ListingFile(size, _name) => {
             let dir = term.fs.get_path_mut(&term.current_dir);
-            dir.files.push(FileInfo {name: name.clone(), size: *size});
+            dir.files.push(FileInfo {size: *size});
         },
         DataLine::ListingDirectory(name) => {
-            let mut dir = term.fs.get_path_mut(&term.current_dir);
+            let dir = term.fs.get_path_mut(&term.current_dir);
             dir.subdirs.entry(name.clone()).or_insert(Folder { subdirs: HashMap::new(), files: vec![], size: 0 });
         },
     };
@@ -139,7 +138,7 @@ pub fn solve_part1(input: &[DataLine]) -> Day7Output {
         build_fs_step(&mut t, dl);
     }
 
-    let Terminal { current_dir: mut _dir, fs: mut fs } = t;
+    let Terminal { current_dir: mut _dir, mut fs } = t;
 
     fs.compute_size();
 
@@ -154,7 +153,8 @@ pub fn solve_part1(input: &[DataLine]) -> Day7Output {
     sum
 }
 
-const test_input1_str: &str = r#"$ cd /
+#[allow(unused)]
+const TEST_INPUT1_STR: &str = r#"$ cd /
 $ ls
 dir a
 14848514 b.txt
@@ -181,7 +181,7 @@ $ ls
 
 #[test]
 pub fn test_part1() {
-    assert_eq!(solve_part1(&day7_generator(test_input1_str)), 95437);
+    assert_eq!(solve_part1(&day7_generator(TEST_INPUT1_STR)), 95437);
 }
 
 #[aoc(day7, part2, default)]
@@ -208,5 +208,5 @@ pub fn solve_part2(input: &[DataLine]) -> Day7Output {
 
 #[test]
 pub fn test_part2() {
-    assert_eq!(solve_part2(&day7_generator(test_input1_str)), 24933642);
+    assert_eq!(solve_part2(&day7_generator(TEST_INPUT1_STR)), 24933642);
 }
