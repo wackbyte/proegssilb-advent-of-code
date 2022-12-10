@@ -69,27 +69,37 @@ pub fn solve_part1(input: InData) -> OutData {
     }).filter(|x| *x > 0).inspect(|x| { dbg!(*x); }).sum()
 }
 
+fn format_screen(pixels: &str) -> String {
+    pixels.chars().chunks(40).into_iter().map(|mut c| c.join("")).take(6).join("\n")
+}
+
 #[aoc(day10, part2)]
 pub fn solve_part2(input: InData) -> String {
-    let reg_stream = convert_instrs_to_register_stream(input);
-    let mut disp = reg_stream.windows(2).fold("".to_owned(), |disp, w| {
-        let [(_, last_reg), (curr_cyc, _)] = w else { panic!("Logical contradiction in window extraction.") };
+    let instr_stream = convert_instrs_to_register_stream(input);
+    let reg_stream = [(1, 1)].iter().chain(instr_stream.iter());
+    let mut disp = reg_stream.tuple_windows().fold("".to_owned(), |disp, w| {
+        println!("Instr window: {:?}", w);
+        let ((last_cyc, last_reg), (curr_cyc, _)) = w;
         let mut disp = disp.to_owned();
-        for cycle_num in disp.len()..(*curr_cyc as usize) {
-            if cycle_num.abs_diff(*last_reg as usize) <=1 {
+        for cycle_num in *last_cyc..*curr_cyc {
+            let cycle_ptr = cycle_num % 40;
+            // choose -----
+            let diff = cycle_ptr - max(*last_reg, 0);
+            let px_on = 0 <= diff && diff < 3;
+            // ---- or ----
+            // let diff = cycle_ptr.abs_diff(max(*last_reg, 2));
+            // let px_on = diff <= 1;
+            // ----- end choose
+            if px_on {
                 disp = disp + "#";
             } else {
                 disp = disp + ".";
             }
         }
+        dbg!(&disp);
         return disp;
     }).to_string();
-    disp.insert(40, '\n');
-    disp.insert(80, '\n');
-    disp.insert(120, '\n');
-    disp.insert(160, '\n');
-    disp.insert(200, '\n');
-    disp.insert(240, '\n');
+    disp = format_screen(&disp);
     println!("{}", disp);
     disp
 }
