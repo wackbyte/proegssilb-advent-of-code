@@ -73,7 +73,7 @@ pub fn solve_part1(input: InData) -> OutData {
 
     tail_coords.len()
 }
-
+#[allow(unused)]
 fn draw_rope(rope: &[(i32, i32)]) {
     let MinMaxResult::MinMax(x_low, x_high) = rope.iter().map(|k| k.0 ).minmax() else { panic!("Grid is only one column.") };
     let MinMaxResult::MinMax(y_low, y_high) = rope.iter().map(|k| k.1 ).minmax() else { panic!("Grid is only one row.") };
@@ -144,6 +144,7 @@ L 5
 R 2
 "#;
 
+#[allow(unused)]
 const TEST_IN_2: &str = r#"
 R 5
 U 8
