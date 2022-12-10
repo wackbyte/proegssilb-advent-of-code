@@ -66,7 +66,7 @@ pub fn solve_part1(input: InData) -> OutData {
         } else {
             return Some(-1);
         }
-    }).filter(|x| *x > 0).inspect(|x| { dbg!(*x); }).sum()
+    }).filter(|x| *x > 0).sum()
 }
 
 fn format_screen(pixels: &str) -> String {
@@ -77,30 +77,64 @@ fn format_screen(pixels: &str) -> String {
 pub fn solve_part2(input: InData) -> String {
     let instr_stream = convert_instrs_to_register_stream(input);
     let reg_stream = [(1, 1)].iter().chain(instr_stream.iter());
-    let mut disp = reg_stream.tuple_windows().fold("".to_owned(), |disp, w| {
-        println!("Instr window: {:?}", w);
-        let ((last_cyc, last_reg), (curr_cyc, _)) = w;
-        let mut disp = disp.to_owned();
-        for cycle_num in *last_cyc..*curr_cyc {
-            let cycle_ptr = cycle_num % 40;
-            // choose -----
-            let diff = cycle_ptr - max(*last_reg, 0);
-            let px_on = 0 <= diff && diff < 3;
-            // ---- or ----
-            // let diff = cycle_ptr.abs_diff(max(*last_reg, 2));
-            // let px_on = diff <= 1;
-            // ----- end choose
-            if px_on {
-                disp = disp + "#";
-            } else {
-                disp = disp + ".";
-            }
+    let mut instr_iter = reg_stream.tuple_windows::<(_, _)>();
+    let mut nxt = instr_iter.next();
+    let mut cycle_cntr = 1;
+    let mut disp = "".to_string();
+
+    while let Some(curr_window) = nxt {
+        let ((last_cyc, last_reg), (curr_cyc, _)) = curr_window;
+
+        if cycle_cntr < *last_cyc {
+            panic!("Cycle counter prior to expected range. Counter: {}, last_cyc: {}, curr_cyc: {}", cycle_cntr, last_cyc, curr_cyc);
         }
-        dbg!(&disp);
-        return disp;
-    }).to_string();
+        if cycle_cntr >= *curr_cyc {
+            nxt = instr_iter.next();
+            continue;
+        }
+
+        let px_ptr = (cycle_cntr - 1) % 40;
+
+        let diff = px_ptr.abs_diff(*last_reg);
+        let px_on = diff <= 1;
+
+        if px_on {
+            disp.push('#');
+        } else {
+            disp.push('.');
+        }
+
+        if cfg!(debug_assertions) {
+            println!("---- Cycle {:>5} {:->30}", cycle_cntr, "");
+            println!("Current Register Window: {:?}", curr_window);
+            dbg!(px_ptr);
+
+            dbg!(diff);
+            dbg!(px_on);
+
+            let mut sprite_vis = "".to_string();
+
+            for px in 0i32..40i32 {
+                let diff = px.abs_diff(*last_reg);
+                let px_on = diff <= 1;
+
+                if px_on {
+                    sprite_vis.push('#');
+                } else {
+                    sprite_vis.push('.');
+                }
+            }
+
+            println!("Sprite:\n0123456789012345678901234567890123456789\n{}", sprite_vis);
+            println!("disp:\n{}", disp.chars().chunks(40).into_iter().map(|mut ch| ch.join("")).join("\n"));
+            println!("{:->45}", "");
+        }
+
+        cycle_cntr = cycle_cntr + 1;
+    }
+
     disp = format_screen(&disp);
-    println!("{}", disp);
+    println!("{}\n{:->50}", disp, "");
     disp
 }
 
