@@ -26,6 +26,20 @@ pub type OutData = u64;
 //     todo!()
 // }
 
+// #[allow(unused)]
+// const TEST_IN: &str = r#"
+// "#;
+
+// #[test]
+// pub fn test_part1() {
+//     assert_eq!(solve_part1(&input_generator(TEST_IN)), _Y);
+// }
+
+// #[test]
+// pub fn test_part2() {
+//     assert_eq!(solve_part2(&input_generator(TEST_IN)), _Z);
+// }
+
 // ------------- Or -------------
 
 // #[aoc(dayX, part1)]
@@ -37,8 +51,7 @@ pub type OutData = u64;
 // pub fn solve_part2(input: &str) -> OutData {
 // }
 
-
-// Testing ----------------------------------------------------------
+// #[allow(unused)]
 // const TEST_IN: &str = r#"
 // "#;
 
@@ -47,6 +60,7 @@ pub type OutData = u64;
 //     assert_eq!(solve_part1(TEST_IN), _Y);
 // }
 
+// #[test]
 // pub fn test_part2() {
 //     assert_eq!(solve_part2(TEST_IN), _Z);
 // }

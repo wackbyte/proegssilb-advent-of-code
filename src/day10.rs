@@ -139,6 +139,7 @@ pub fn solve_part2(input: InData) -> String {
 }
 
 // Testing ----------------------------------------------------------
+#[allow(unused)]
 const TEST_IN: &str = r#"
 addx 15
 addx -11
@@ -288,6 +289,7 @@ noop
 noop
 "#;
 
+#[allow(unused)]
 const TEST_OUT_2: &str = r#"
 ##..##..##..##..##..##..##..##..##..##..
 ###...###...###...###...###...###...###.
