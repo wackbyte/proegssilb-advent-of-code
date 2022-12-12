@@ -4,21 +4,23 @@ use std::ops::{Mul, Add};
 use aoc_runner_derive::aoc;
 use itertools::Itertools;
 
-type WorryType = u128;
+type WorryType = u64;
+type InspectedType = u64;
 
 pub struct Monkey {
     id: i32,
     items: Vec<WorryType>,
     operation: Box<dyn Fn(WorryType) -> WorryType>,
     throw_test: Box<dyn Fn(WorryType) -> bool>,
+    throw_test_val: WorryType,
     target_true: usize,
     target_false: usize,
-    items_inspected: u128,
+    items_inspected: InspectedType,
 }
 
 pub type GenData = Vec<Monkey>;
 pub type InData<'a> = &'a [Monkey];
-pub type OutData = u128;
+pub type OutData = InspectedType;
 
 pub fn input_generator(input: &str) -> GenData {
     let regex = regex::Regex::new(r#"Monkey (\d+):
@@ -39,7 +41,7 @@ pub fn input_generator(input: &str) -> GenData {
         let test_val: WorryType = raw_monkey.get(6).unwrap().as_str().parse().unwrap();
         let throw_test = Box::new(move |old: WorryType| old % test_val == 0);
 
-        let monke = Monkey {id: monkey_number, items: starting_items, operation: op, items_inspected: 0, throw_test, target_false, target_true};
+        let monke = Monkey {id: monkey_number, items: starting_items, operation: op, items_inspected: 0, throw_test, target_false, target_true, throw_test_val: test_val};
         results.push(monke);
     }
 
@@ -73,9 +75,11 @@ pub fn solve_part1(input: &str) -> OutData {
     monkeys.sort_by_key(|m| m.id);
 
     for round_num in 1..=20 {
-        println!("{:#^50}", format!("Round {}", round_num));
+        if cfg!(debug_assertions) {
+            println!("{:#^50}", format!("Round {}", round_num));
+        }
         for idx in 0..monkeys.len() {
-            process_turn(&mut monkeys, idx, true);
+            process_turn(&mut monkeys, idx, true, None);
         }
     }
 
@@ -84,54 +88,81 @@ pub fn solve_part1(input: &str) -> OutData {
     monkeys[0].items_inspected * monkeys[1].items_inspected
 }
 
-fn process_turn(monkeys: &mut [Monkey], idx: usize, decrease_worry: bool) {
-    {
-        println!("Monkey {}", monkeys[idx].id);
+fn process_turn(monkeys: &mut [Monkey], idx: usize, decrease_worry: bool, modulo: Option<WorryType>) {
+    if cfg!(debug_assertions) {
+        if let Some(base) = modulo {
+            println!("Monkey {} (working modulo {})", monkeys[idx].id, base);
+        } else {
+            println!("Monkey {}", monkeys[idx].id);
+        }
     }
 
-    let items = {
+    let mut items = {
         let mut current_monkey = monkeys.get_mut(idx).unwrap();
-        current_monkey.items_inspected += current_monkey.items.len() as u128;
+        current_monkey.items_inspected += current_monkey.items.len() as InspectedType;
         let items = std::mem::take(&mut current_monkey.items);
         items
     };
-    for curr_item in items {
+
+    for curr_item in items.iter() {
         let (target_idx, item) = {
             let current_monkey = &monkeys[idx];
-            let mut item = curr_item;
-            println!("\tMonkey inspects an item with worry level {}", item);
+            let mut item = *curr_item;
+            if cfg!(debug_assertions) {
+                println!("\tMonkey inspects an item with worry level {}", item);
+            }
             item = current_monkey.operation.as_ref()(item);
-            println!("\t\tWorry level shifts to {}", item);
+            if let Some(base) = modulo {
+                item = item % base;
+            }
+            if cfg!(debug_assertions) {
+                println!("\t\tWorry level shifts to {}", item);
+            }
             if decrease_worry {
                 item /= 3;
-                println!("\t\tMonkey gets bored with item. Worry level shifts to {}", item);
+                if cfg!(debug_assertions) {
+                    println!("\t\tMonkey gets bored with item. Worry level shifts to {}", item);
+                }
             }
             let check_result = current_monkey.throw_test.as_ref()(item);
-            println!("\t\tCurrent worry level {} check", if check_result {"passes"} else {"fails"});
+            if cfg!(debug_assertions) {
+                println!("\t\tCurrent worry level {} check", if check_result {"passes"} else {"fails"});
+            }
             let target_idx = if check_result {current_monkey.target_true} else {current_monkey.target_false};
             (target_idx, item)
         };
-        println!("\t\tItem with worry level {} is thrown to monkey {}", item, target_idx);
-        monkeys[target_idx].items.push(item);
+        if cfg!(debug_assertions) {
+            println!("\t\tItem with worry level {} is thrown to monkey {}", item, target_idx);
+        }
+        {
+            monkeys[target_idx].items.push(item);
+        }
     }
+
+    items.clear();
+    monkeys[idx].items = items;
 }
 
-// #[aoc(day11, part2)]
-// pub fn solve_part2(input: &str) -> OutData {
-//     let mut monkeys = input_generator(input);
-//     monkeys.sort_by_key(|m| m.id);
+#[aoc(day11, part2)]
+pub fn solve_part2(input: &str) -> OutData {
+    let mut monkeys = input_generator(input);
+    monkeys.sort_by_key(|m| m.id);
 
-//     for round_num in 1..=10_000 {
-//         println!("{:#^50}", format!("Round {}", round_num));
-//         for idx in 0..monkeys.len() {
-//             process_turn(&mut monkeys, idx, false);
-//         }
-//     }
+    let modulo = monkeys.iter().fold(1, |x, y| x * y.throw_test_val);
 
-//     monkeys.sort_by_key(|m| -(m.items_inspected as i128));
+    for round_num in 1..=10_000 {
+        if cfg!(debug_assertions) {
+            println!("{:#^50}", format!("Round {}", round_num));
+        }
+        for idx in 0..monkeys.len() {
+            process_turn(&mut monkeys, idx, false, Some(modulo));
+        }
+    }
 
-//     monkeys[0].items_inspected * monkeys[1].items_inspected
-// }
+    monkeys.sort_by_key(|m| -(m.items_inspected as i128));
+
+    monkeys[0].items_inspected * monkeys[1].items_inspected
+}
 
 // Testing ----------------------------------------------------------
 #[allow(unused)]
@@ -166,11 +197,11 @@ Monkey 3:
 "#;
 
 #[test]
-pub fn test_part1() {
+pub fn test_d11_part1() {
     assert_eq!(solve_part1(&TEST_IN), 10605);
 }
 
-// #[test]
-// pub fn test_part2() {
-//     assert_eq!(solve_part2(&TEST_IN), 2713310158u128);
-// }
+#[test]
+pub fn test_d11_part2() {
+    assert_eq!(solve_part2(&TEST_IN), (2713310158u128 as InspectedType));
+}
