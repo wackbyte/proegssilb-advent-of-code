@@ -88,11 +88,11 @@ pub fn input_generator(input: &str) -> GenData {
     let starting = NodeIndex::from(indices[starting_coords.0][starting_coords.1]);
     let ending = NodeIndex::from(indices[ending_coords.0][ending_coords.1]);
 
-    dbg!(starting_coords);
-    dbg!(starting);
-    dbg!(ending_coords);
-    dbg!(ending);
-    dbg!(&results);
+    // dbg!(starting_coords);
+    // dbg!(starting);
+    // dbg!(ending_coords);
+    // dbg!(ending);
+    // dbg!(&results);
 
     ParseResults { graph: results, starting, ending }
 }
@@ -105,15 +105,39 @@ pub fn solve_part1(input: InData) -> OutData {
 
     let results = dijkstra(graph, starting_idx, Some(ending_idx), |_| 1u64);
 
-    dbg!(&results);
+    // dbg!(&results);
 
     *results.get(&ending_idx).unwrap_or_else(|| panic!("Could not locate ending node in explored part of graph."))
 }
 
-// #[aoc(day12, part2)]
-// pub fn solve_part2(input: InData) -> OutData {
-//     todo!()
-// }
+#[aoc(day12, part2)]
+pub fn solve_part2(input: InData) -> OutData {
+    let mut graph = input.graph.clone();
+    let ending_idx = input.ending;
+
+    // Get the starting points...
+    let possible_starts = {
+        let node_list = graph.raw_nodes();
+        graph.node_indices()
+            .map(|idx| (idx, node_list.get(idx.index()).unwrap_or_else(|| panic!("Could not find node in graph {}", idx.index()))))
+            .filter(|(_, a)| a.weight == 'a')
+            .map(|(idx, _)| idx)
+            .collect_vec()
+    };
+
+    // Reverse the edges so that the ending point is where we can start the search
+    graph.reverse();
+
+    let search_results = dijkstra(&graph, ending_idx, None, |_| 1u64);
+
+    possible_starts.iter()
+        .filter(|idx| search_results.contains_key(idx))
+        .map(|idx| *search_results
+            .get(idx)
+            .unwrap_or_else(|| panic!("Could not locate node {} in search results.", idx.index())))
+        .min()
+        .unwrap_or_else(|| panic!("No possible starts found in search results."))
+}
 
 #[allow(unused)]
 const TEST_IN: &str = r#"
@@ -125,11 +149,11 @@ abdefghi
 "#;
 
 #[test]
-pub fn test_part1() {
+pub fn test_d12_part1() {
     assert_eq!(solve_part1(&input_generator(TEST_IN)), 31);
 }
 
-// #[test]
-// pub fn test_part2() {
-//     assert_eq!(solve_part2(&input_generator(TEST_IN)), _Z);
-// }
+#[test]
+pub fn test_d12_part2() {
+    assert_eq!(solve_part2(&input_generator(TEST_IN)), 29);
+}
