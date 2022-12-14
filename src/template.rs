@@ -13,6 +13,7 @@ pub type OutData = u64;
 
 // #[aoc_generator(dayX)]
 // pub fn input_generator(input: &str) -> GenData {
+//     let input = input.trim_start();
 //     todo!()
 // }
 
@@ -44,11 +45,12 @@ pub type OutData = u64;
 
 // #[aoc(dayX, part1)]
 // pub fn solve_part1(input: &str) -> OutData {
-
+//     let input = input.trim_start();
 // }
 
 // #[aoc(daX, part2)]
 // pub fn solve_part2(input: &str) -> OutData {
+//     let input = input.trim_start();
 // }
 
 // #[allow(unused)]

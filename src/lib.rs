@@ -1,5 +1,6 @@
 extern crate itertools;
 extern crate regex;
+extern crate termion;
 
 use aoc_runner_derive::aoc_lib;
 

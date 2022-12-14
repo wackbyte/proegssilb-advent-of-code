@@ -9,9 +9,11 @@ bench = false
 [dependencies]
 aoc-runner = "0.3.0"
 aoc-runner-derive = "0.3.0"
+grid = "0.9.0"
 itertools = "0.10.5"
 petgraph = "0.6.2"
 regex = "1"
+termion = "2.0.1"
 
 [profile.release]
 debug = true
