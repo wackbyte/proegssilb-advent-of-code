@@ -1,7 +1,6 @@
 use core::panic;
-#[allow(unused_imports)]
 use std::cmp::max;
-use std::{thread::sleep, time::Duration, io::{stdout, Write}, fmt::Display, cmp::min};
+use std::{io::{stdout, Write}, fmt::Display, cmp::min};
 use aoc_runner_derive::{aoc_generator, aoc};
 use grid::Grid;
 use itertools::{Itertools, MinMaxResult};
@@ -48,7 +47,7 @@ pub fn parser(input: &str, gen_floor: bool) -> GenData {
     let MinMaxResult::MinMax(min_x, max_x) = paths.iter().flat_map(|ps| ps.iter().map(|pt| pt.0)).minmax() else {
         panic!("MinMaxResult X produced fewer than 2 distinct values.");
     };
-    let MinMaxResult::MinMax(min_y, max_y) = paths.iter().flat_map(|ps| ps.iter().map(|pt| pt.1)).minmax() else {
+    let MinMaxResult::MinMax(_, max_y) = paths.iter().flat_map(|ps| ps.iter().map(|pt| pt.1)).minmax() else {
         panic!("MinMaxResult Y produced fewer than 2 distinct values.");
     };
 
@@ -123,6 +122,7 @@ fn get_next_locs(data: &GenData, (x, y): (usize, usize)) -> Option<[Cell; 3]> {
     Some([c1, c2, c3])
 }
 
+#[allow(unused)]
 fn draw_cave(cave: &GenData, msg: &str) {
     let GenData {grid, x_offset, y_abyss: _} = cave;
 
