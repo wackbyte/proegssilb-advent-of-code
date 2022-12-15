@@ -6,7 +6,7 @@ use grid::Grid;
 use itertools::{Itertools, MinMaxResult};
 use termion::cursor;
 
-#[derive(Debug, PartialEq, Clone, Copy, Default)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Default)]
 pub enum Cell {
     #[default]
     Nothing,
@@ -37,7 +37,7 @@ pub fn parser(input: &str, gen_floor: bool) -> GenData {
     let input = input.trim_start();
     let paths: Vec<Vec<(usize, usize)>> = input.lines().map(|path| {
         path.split(" -> ").map(|s| {
-            let Some((x, y)) = s.split_once(",") else { panic!("Invalid coordinate: {}", s) };
+            let Some((x, y)) = s.split_once(',') else { panic!("Invalid coordinate: {}", s) };
             let x: usize = x.parse().unwrap();
             let y: usize = y.parse().unwrap();
             (x, y)
@@ -116,9 +116,9 @@ fn get_next_locs(data: &GenData, (x, y): (usize, usize)) -> Option<[Cell; 3]> {
     }
 
     let (x, false) = x.overflowing_sub(*x_offset) else {panic!("Could not offset X-Coord of point {:?} by {}", (x, y), x_offset)};
-    let c1 = *grid.get(y + 1, x).expect(&format!("Coords could not be offset: {:?} {}", (x + x_offset, y), "c1"));
-    let c2 = *grid.get(y + 1, x-1).expect(&format!("Coords could not be offset: {:?} {}", (x + x_offset, y), "c2"));
-    let c3 = *grid.get(y + 1, x + 1).expect(&format!("Coords could not be offset: {:?} {}", (x + x_offset, y), "c3"));
+    let c1 = *grid.get(y + 1, x).unwrap_or_else(|| panic!("Coords could not be offset: {:?} {}", (x + x_offset, y), "c1"));
+    let c2 = *grid.get(y + 1, x-1).unwrap_or_else(|| panic!("Coords could not be offset: {:?} {}", (x + x_offset, y), "c2"));
+    let c3 = *grid.get(y + 1, x + 1).unwrap_or_else(|| panic!("Coords could not be offset: {:?} {}", (x + x_offset, y), "c3"));
     Some([c1, c2, c3])
 }
 
@@ -144,7 +144,7 @@ fn draw_cave(cave: &GenData, msg: &str) {
 
 #[aoc(day14, part1)]
 pub fn solve_part1(input: &GenData) -> OutData {
-    let mut input = GenData { x_offset: input.x_offset.clone(), grid: input.grid.clone(), y_abyss: input.y_abyss.clone(),};
+    let mut input = GenData { x_offset: input.x_offset, grid: input.grid.clone(), y_abyss: input.y_abyss,};
     let mut sand_counter = 0;
     while input.grid.get(0, 500 - input.x_offset) != Some(&Sand) {
         sand_counter += 1;
@@ -177,7 +177,7 @@ pub fn solve_part1(input: &GenData) -> OutData {
 
 #[aoc(day14, part2)]
 pub fn solve_part2(input: &GenData) -> OutData {
-    let mut input = GenData { x_offset: input.x_offset.clone(), grid: input.grid.clone(), y_abyss: input.y_abyss.clone(),};
+    let mut input = GenData { x_offset: input.x_offset, grid: input.grid.clone(), y_abyss: input.y_abyss,};
     let mut sand_counter = 0;
     while input.grid.get(0, 500 - input.x_offset) != Some(&Sand) {
         sand_counter += 1;
