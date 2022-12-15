@@ -3,7 +3,7 @@ use aoc_runner_derive::{aoc, aoc_generator};
 
 type DataLine = (u16, u16, u16, u16);
 
-#[aoc_generator(day4, numparse)]
+#[aoc_generator(day04, numparse)]
 pub fn input_generator(input: &str) -> Vec<DataLine> {
     let mut results: Vec<DataLine> = Vec::new();
     for line in input.lines() {
@@ -29,7 +29,7 @@ fn range_overlaps(dl: &DataLine) -> i32 {
     res as i32
 }
 
-#[aoc(day4, part1)]
+#[aoc(day04, part1)]
 pub fn solve_part1(input: &[DataLine]) -> i32 {
     input
         .iter()
@@ -37,7 +37,7 @@ pub fn solve_part1(input: &[DataLine]) -> i32 {
         .sum()
 }
 
-#[aoc(day4, part2)]
+#[aoc(day04, part2)]
 pub fn solve_part2(input: &[DataLine]) -> i32 {
     input
         .iter()

@@ -3,30 +3,9 @@ use std::cmp::max;
 use aoc_runner_derive::aoc;
 use itertools::Itertools;
 
-// pub type Day8Gen = Vec<i32>;
-// pub type Day8In<'a> = &'a [i32];
 pub type Day8Output = u64;
 
-// Choose One
-
-// #[aoc_generator(day8)]
-// pub fn input_generator(input: &str) -> Day8Gen {
-//     todo!()
-// }
-
-// #[aoc(day8, part1)]
-// pub fn solve_part1(input: Day8In) -> Day8Output {
-//     todo!()
-// }
-
-// #[aoc(day8, part2)]
-// pub fn solve_part2(input: Day8In) -> Day8Output {
-//     todo!()
-// }
-
-// Or
-
-#[aoc(day8, part1)]
+#[aoc(day08, part1)]
 pub fn solve_part1(input: &str) -> Day8Output {
     let grid = input.lines().map(|s| s.bytes().collect_vec()).collect_vec();
     let mut count = 0u64;
@@ -129,7 +108,7 @@ fn scenic_score(grid: &Vec<Vec<u8>>, row_num: usize, col_num: usize) -> u64 {
     score
 }
 
-#[aoc(day8, part2)]
+#[aoc(day08, part2)]
 pub fn solve_part2(input: &str) -> Day8Output {
     let grid = input.lines().map(|s| s.bytes().collect_vec()).collect_vec();
     let mut max_score = 0u64;

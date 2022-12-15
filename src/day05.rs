@@ -26,7 +26,7 @@ fn print_board(brd: &Board) {
     println!("]")
 }
 
-#[aoc_generator(day5)]
+#[aoc_generator(day05)]
 pub fn input_generator(input: &str) -> (Board, Vec<MoveInfo>) {
     let first_line = input.lines().next().unwrap();
     let expected_stacks = (first_line.len() + 1) / 4;
@@ -110,7 +110,7 @@ fn run_arrangement(board: &mut Board, moves: &[MoveInfo], do_reverse: bool) {
     }
 }
 
-#[aoc(day5, part1)]
+#[aoc(day05, part1)]
 pub fn solve_part1(input: &(Board, Vec<MoveInfo>)) -> Output {
     let mut board = input.0.iter().cloned().collect_vec();
     run_arrangement(&mut board, &input.1, true);
@@ -122,7 +122,7 @@ pub fn solve_part1(input: &(Board, Vec<MoveInfo>)) -> Output {
     result
 }
 
-#[aoc(day5, part2)]
+#[aoc(day05, part2)]
 pub fn solve_part2(input: &(Board, Vec<MoveInfo>)) -> Output {
     let mut board = input.0.iter().cloned().collect_vec();
     run_arrangement(&mut board, &input.1, false);

@@ -4,7 +4,7 @@ use itertools::Itertools;
 use std::collections::VecDeque;
 
 
-#[aoc(day6, part1)]
+#[aoc(day06, part1)]
 pub fn solve_part1(input: &[u8]) -> usize {
     let mut i = input.iter().enumerate().scan(0u32, |state, (idx, b)| {
         *state = *state << 8 | (*b as u32);
@@ -27,7 +27,7 @@ pub fn test_part1() {
     assert_eq!(solve_part1(b"zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw"), 11);
 }
 
-#[aoc(day6, part2, devec)]
+#[aoc(day06, part2, devec)]
 pub fn solve_part2_devec(input: &[u8]) -> usize {
     let mut i = input.iter().enumerate().scan(VecDeque::new(), |state, (idx, b)| {
         state.push_front(*b);
@@ -44,13 +44,13 @@ pub fn solve_part2_devec(input: &[u8]) -> usize {
     i.next().unwrap()
 }
 
-#[aoc(day6, part2, default)]
+#[aoc(day06, part2, default)]
 pub fn solve_part2_window(input: &[u8]) -> usize {
     let mut i = input.windows(14).position(|w| w.iter().all_unique());
     i.take().unwrap() + 14
 }
 
-#[aoc(day6, part2, bitbang)]
+#[aoc(day06, part2, bitbang)]
 pub fn solve_part2_bitbang(input: &[u8]) -> usize {
     let mut i = input.iter().enumerate().scan(0u128, |state, (idx, b)| {
         *state = (*state << 8 | *b as u128) & 0x0000_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFFu128;

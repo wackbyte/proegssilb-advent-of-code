@@ -18,7 +18,7 @@ pub type RoundInput = (GameThrow, SecondColumn);
 
 pub type Round = (GameThrow, GameThrow);
 
-#[aoc_generator(day2)]
+#[aoc_generator(day02)]
 pub fn input_generator(input: &str) -> Vec<RoundInput> {
     let mut results: Vec<RoundInput> = Vec::new();
     for round_str in input.lines() {
@@ -100,7 +100,7 @@ fn score(round: Round) -> u64 {
     move_points + victory_points
 }
 
-#[aoc(day2, part1)]
+#[aoc(day02, part1)]
 pub fn solve_part1(input: &[RoundInput]) -> u64 {
     input
         .iter()
@@ -109,7 +109,7 @@ pub fn solve_part1(input: &[RoundInput]) -> u64 {
         .sum()
 }
 
-#[aoc(day2, part2)]
+#[aoc(day02, part2)]
 pub fn solve_part2(input: &[RoundInput]) -> u64 {
     input.iter()
         .map(interpret_round_p2)

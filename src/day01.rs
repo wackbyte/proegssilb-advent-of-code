@@ -1,7 +1,7 @@
 use std::collections::BinaryHeap;
 use aoc_runner_derive::{aoc_generator, aoc};
 
-#[aoc_generator(day1)]
+#[aoc_generator(day01)]
 pub fn input_generator(input: &str) -> Vec<i32> {
     let mut results: Vec<i32> = Vec::new();
     let mut current_sum: i32 = 0;
@@ -17,7 +17,7 @@ pub fn input_generator(input: &str) -> Vec<i32> {
     results
 }
 
-#[aoc(day1, part1)]
+#[aoc(day01, part1)]
 pub fn solve_part1(input: &[i32]) -> i32 {
     *input
         .iter()
@@ -25,7 +25,7 @@ pub fn solve_part1(input: &[i32]) -> i32 {
         .unwrap()
 }
 
-#[aoc(day1, part2)]
+#[aoc(day01, part2)]
 pub fn solve_part2(input: &Vec<i32>) -> i32 {
     let mut results = BinaryHeap::new();
     for backpack in input {

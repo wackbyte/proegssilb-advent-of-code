@@ -80,8 +80,8 @@ impl Folder {
 }
 
 
-#[aoc_generator(day7, default)]
-pub fn day7_generator(input: &str) -> Vec<DataLine> {
+#[aoc_generator(day07, default)]
+pub fn day07_generator(input: &str) -> Vec<DataLine> {
     let mut results: Vec<DataLine> = Vec::new();
     for line in input.lines() {
         let data = match line.as_bytes()[0] {
@@ -131,7 +131,7 @@ fn build_fs_step(term: &mut Terminal, cmd: &DataLine) {
     };
 }
 
-#[aoc(day7, part1, default)]
+#[aoc(day07, part1, default)]
 pub fn solve_part1(input: &[DataLine]) -> Day7Output {
     let mut t = Terminal::new();
     for dl in input {
@@ -181,10 +181,10 @@ $ ls
 
 #[test]
 pub fn test_part1() {
-    assert_eq!(solve_part1(&day7_generator(TEST_INPUT1_STR)), 95437);
+    assert_eq!(solve_part1(&day07_generator(TEST_INPUT1_STR)), 95437);
 }
 
-#[aoc(day7, part2, default)]
+#[aoc(day07, part2, default)]
 pub fn solve_part2(input: &[DataLine]) -> Day7Output {
     let mut t = Terminal::new();
     for dl in input {
@@ -208,5 +208,5 @@ pub fn solve_part2(input: &[DataLine]) -> Day7Output {
 
 #[test]
 pub fn test_part2() {
-    assert_eq!(solve_part2(&day7_generator(TEST_INPUT1_STR)), 24933642);
+    assert_eq!(solve_part2(&day07_generator(TEST_INPUT1_STR)), 24933642);
 }

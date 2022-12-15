@@ -25,7 +25,7 @@ pub type OutData = usize;
 // Solution ---------------------------------------------------------
 // Choose One
 
-#[aoc_generator(day9)]
+#[aoc_generator(day09)]
 pub fn input_generator(input: &str) -> GenData {
     let mut results: GenData = Vec::new();
     for line in input.lines() {
@@ -45,7 +45,7 @@ pub fn input_generator(input: &str) -> GenData {
     results
 }
 
-#[aoc(day9, part1)]
+#[aoc(day09, part1)]
 pub fn solve_part1(input: InData) -> OutData {
     let mut h_loc: (i32, i32) = (0, 0);
     let mut t_loc: (i32, i32) = (0, 0);
@@ -98,7 +98,7 @@ fn draw_rope(rope: &[(i32, i32)]) {
     println!("");
 }
 
-#[aoc(day9, part2)]
+#[aoc(day09, part2)]
 pub fn solve_part2(input: InData) -> OutData {
     const KNOT_COUNT: usize = 10;
     let mut knots = [(0i32, 0i32); KNOT_COUNT];

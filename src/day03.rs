@@ -15,12 +15,12 @@ fn error_priority(error: &u8) -> i32 {
     }
 }
 
-#[aoc(day3, part1)]
+#[aoc(day03, part1)]
 pub fn solve_part1(input: &str) -> i32 {
     input.lines().flat_map(find_error).map(error_priority).sum()
 }
 
-#[aoc(day3, part2)]
+#[aoc(day03, part2)]
 pub fn solve_part2(input: &str) -> i32 {
     let groups = input
         .lines()
