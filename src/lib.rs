@@ -1,6 +1,7 @@
 extern crate itertools;
 extern crate regex;
 extern crate termion;
+extern crate gridly_grids;
 
 use aoc_runner_derive::aoc_lib;
 
