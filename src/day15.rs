@@ -3,6 +3,7 @@ use std::cmp::max;
 use std::cmp::min;
 use std::collections::HashSet;
 use std::collections::HashMap;
+use std::mem::take;
 use std::ops::RangeInclusive;
 use aoc_runner_derive::{aoc_generator, aoc};
 use itertools::Itertools;
@@ -44,6 +45,7 @@ where T: Ord
     !(a.end() < b.start() || b.end() < a.start())
 }
 
+#[derive(Debug)]
 pub struct RangeLine {
     ranges_set: Vec<RangeInclusive<i64>>,
 }
@@ -62,9 +64,10 @@ impl RangeLine {
                 let new_min = min(*x.start(), existing_min);
                 let new_max = max(*x.end(), existing_max);
                 self.ranges_set[idx] = RangeInclusive::new(new_min, new_max);
-                break;
+                return;
             }
         }
+        self.ranges_set.push(x.clone());
     }
 
     fn unset_point(&mut self, pt: i64) {
@@ -73,14 +76,25 @@ impl RangeLine {
                 let range_a = *self.ranges_set[idx].start()..=(pt-1);
                 let range_b = (pt+1)..=*(self.ranges_set[idx].end());
                 self.ranges_set[idx] = range_a;
-                self.ranges_set.push(range_b);
-                break;
+                self.set_range(&range_b);
+                return;
             }
         }
     }
 
     fn len(&self) -> i64 {
-        self.ranges_set.iter().map(|r| r.end() - r.start()).sum()
+        self.ranges_set.iter().map(|r| {
+            let e = *r.end();
+            let s = *r.start();
+            (e.abs_diff(s) + 1) as i64
+        }).sum()
+    }
+
+    fn normalize(&mut self) {
+        let ranges = take(&mut self.ranges_set);
+        for r in ranges {
+            self.set_range(&r);
+        }
     }
 }
 
@@ -132,18 +146,21 @@ pub fn solve_part1(input: InData) -> OutData {
             let max_x = sensor_x + dist_remain;
             let range = min_x..=max_x;
             mapped_spots.set_range(&range);
+            mapped_spots.normalize();
         }
         if *beacon_y == target_y {
             beacon_spots.insert(*beacon_x);
         }
     }
 
+    for pt in beacon_spots.iter() {
+        mapped_spots.unset_point(*pt);
+    }
+
+    mapped_spots.normalize();
+
     dbg!(&beacon_spots.len());
     dbg!(&mapped_spots.len());
-
-    for pt in beacon_spots {
-        mapped_spots.unset_point(pt);
-    }
 
     mapped_spots.len() as usize
 }
