@@ -1,10 +1,7 @@
-use std::cmp::Ordering;
-use std::cmp::max;
-use std::cmp::min;
-use std::collections::HashSet;
-use std::collections::HashMap;
+use std::cmp::{Ordering, max, min};
+use std::collections::{HashSet, HashMap};
 use std::mem::take;
-use std::ops::RangeInclusive;
+use std::ops::{RangeInclusive, Add};
 use aoc_runner_derive::{aoc_generator, aoc};
 use itertools::Itertools;
 
@@ -40,9 +37,15 @@ fn range_either_contains<T>(a: RangeInclusive<T>, b: RangeInclusive<T>) -> bool
 }
 
 fn range_overlaps<T>(a: &RangeInclusive<T>, b: &RangeInclusive<T>) -> bool 
-where T: Ord
+    where T: Ord
 {
     !(a.end() < b.start() || b.end() < a.start())
+}
+
+fn range_adjacent<T>(a: &RangeInclusive<T>, b: &RangeInclusive<T>) -> bool
+    where T: Ord + Add<T> + From<i32> + Copy, <T as std::ops::Add>::Output: PartialEq<T>
+{
+    *a.end() + 1.into() == *b.start() || *b.end() + 1.into() == *a.start()
 }
 
 #[derive(Debug)]
@@ -56,18 +59,18 @@ impl RangeLine {
     }
 
     fn set_range(&mut self, x: &RangeInclusive<i64>) {
+        let mut x = x.clone();
         for idx in 0..self.ranges_set.len() {
-            let intersect = range_overlaps(x, &self.ranges_set[idx]);
-            if intersect {
-                let existing_min = *self.ranges_set[idx].start();
-                let existing_max = *self.ranges_set[idx].end();
+            while idx < self.ranges_set.len() && (range_overlaps(&x, &self.ranges_set[idx]) || range_adjacent(&x, &self.ranges_set[idx])) {
+                let old = self.ranges_set.remove(idx);
+                let existing_min = *old.start();
+                let existing_max = *old.end();
                 let new_min = min(*x.start(), existing_min);
                 let new_max = max(*x.end(), existing_max);
-                self.ranges_set[idx] = RangeInclusive::new(new_min, new_max);
-                return;
+                x = new_min..=new_max;
             }
         }
-        self.ranges_set.push(x.clone());
+        self.ranges_set.push(x);
     }
 
     fn unset_point(&mut self, pt: i64) {
@@ -96,10 +99,17 @@ impl RangeLine {
             self.set_range(&r);
         }
     }
+
+    fn ranges_count(&self) -> usize {
+        self.ranges_set.len()
+    }
+
+    fn contains(&self, point: i64) -> bool {
+        self.ranges_set.iter().any(|r| r.contains(&point))
+    }
 }
 
 // Solution ---------------------------------------------------------
-// Choose One
 
 #[aoc_generator(day15)]
 pub fn input_generator(input: &str) -> GenData {
@@ -165,17 +175,51 @@ pub fn solve_part1(input: InData) -> OutData {
     mapped_spots.len() as usize
 }
 
+#[cfg(test)]
+const MAX_COORD: u32 = 20;
+
+#[cfg(not(test))]
+const MAX_COORD: u32 = 4_000_000;
+
+const TUNING_ADJUST: i64 = 4_000_000;
+
+
 #[aoc(day15, part2)]
 pub fn solve_part2(input: InData) -> OutData {
-    let max_coord = if cfg!(test) {
-        20i64
-    } else {
-        4_000_000i64
-    };
 
-    let tuning_adjust = 4_000_000i64;
+    let mut grid: Vec<RangeLine> = Vec::new();
+    for _ in 0..=MAX_COORD {
+        grid.push( RangeLine::new() );
+    }
 
-    todo!()
+    for (sensor_x, sensor_y, beacon_x, beacon_y) in input.iter() {
+        let total_distance = (sensor_x.abs_diff(*beacon_x) + sensor_y.abs_diff(*beacon_y)) as i64;
+        let min_y = max(sensor_y - total_distance, 0);
+        let max_y = min(sensor_y + total_distance, MAX_COORD as i64);
+        // For each Y (within bounds) the sensor can cover {
+        for y_val in min_y..=max_y {
+            // Do projection to figure out coverage range
+            let distance_remaining = total_distance - y_val.abs_diff(*sensor_y) as i64;
+            let min_x = max(0, *sensor_x - distance_remaining);
+            let max_x = min(MAX_COORD as i64, *sensor_x + distance_remaining);
+            // Set range for that Y's RangeLine
+            let range = min_x..=max_x;
+            grid[y_val as usize].set_range(&range);
+
+            // Normalize current row's RangeLine
+            grid[y_val as usize].normalize();
+        }
+    }
+
+    for (idx, row) in grid.iter().enumerate().filter(|&(_, c)| c.ranges_count() > 1) {
+        for x_val in 0..MAX_COORD {
+            if !row.contains(x_val as i64) {
+                return ((x_val as i64) * TUNING_ADJUST) as usize + idx;
+            }
+        }
+    }
+
+    0
 }
 
 #[allow(unused)]
