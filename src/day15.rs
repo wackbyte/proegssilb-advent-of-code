@@ -1,40 +1,12 @@
-use std::cmp::{Ordering, max, min};
-use std::collections::{HashSet, HashMap};
+use std::cmp::{max, min};
+use std::collections::{HashSet};
 use std::mem::take;
 use std::ops::{RangeInclusive, Add};
 use aoc_runner_derive::{aoc_generator, aoc};
-use itertools::Itertools;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Cell {
-    Field(u32),
-    Sensor(u8),
-    Beacon(u8),
-}
-
-impl Default for Cell {
-    fn default() -> Self {
-        Cell::Field(0u32)
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct Point{x: i64, y: i64}
-
-pub type SparseGrid = HashMap<Point, Cell>;
 
 pub type GenData = Vec<(i64, i64, i64, i64)>;
 pub type InData<'a> = &'a [(i64, i64, i64, i64)];
 pub type OutData = usize;
-
-fn range_either_contains<T>(a: RangeInclusive<T>, b: RangeInclusive<T>) -> bool
-    where T: Ord
-{
-    let cmp1 = a.start().cmp(b.start());
-    let cmp2 = a.end().cmp(b.end());
-    let res = cmp1 != cmp2 || cmp1 == Ordering::Equal;
-    res
-}
 
 fn range_overlaps<T>(a: &RangeInclusive<T>, b: &RangeInclusive<T>) -> bool 
     where T: Ord
@@ -107,6 +79,10 @@ impl RangeLine {
     fn contains(&self, point: i64) -> bool {
         self.ranges_set.iter().any(|r| r.contains(&point))
     }
+
+    fn raw<'a>(&'a self) -> &'a Vec<RangeInclusive<i64>> {
+        &self.ranges_set
+    }
 }
 
 // Solution ---------------------------------------------------------
@@ -156,7 +132,6 @@ pub fn solve_part1(input: InData) -> OutData {
             let max_x = sensor_x + dist_remain;
             let range = min_x..=max_x;
             mapped_spots.set_range(&range);
-            mapped_spots.normalize();
         }
         if *beacon_y == target_y {
             beacon_spots.insert(*beacon_x);
@@ -205,11 +180,10 @@ pub fn solve_part2(input: InData) -> OutData {
             // Set range for that Y's RangeLine
             let range = min_x..=max_x;
             grid[y_val as usize].set_range(&range);
-
-            // Normalize current row's RangeLine
-            grid[y_val as usize].normalize();
         }
     }
+
+    dbg!(grid.iter().map(|r| r.raw().capacity()).max());
 
     for (idx, row) in grid.iter().enumerate().filter(|&(_, c)| c.ranges_count() > 1) {
         for x_val in 0..MAX_COORD {

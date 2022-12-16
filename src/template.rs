@@ -48,7 +48,7 @@ pub type OutData = u64;
 //     let input = input.trim_start();
 // }
 
-// #[aoc(daX, part2)]
+// #[aoc(dayX, part2)]
 // pub fn solve_part2(input: &str) -> OutData {
 //     let input = input.trim_start();
 // }
