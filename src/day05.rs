@@ -31,7 +31,7 @@ pub fn input_generator(input: &str) -> (Board, Vec<MoveInfo>) {
     let first_line = input.lines().next().unwrap();
     let expected_stacks = (first_line.len() + 1) / 4;
     let mut stacks: Board = (0..expected_stacks).map(|_| Vec::new()).collect_vec();
-    
+
     let mut parsed_board = false;
 
     let mut moves: Vec<MoveInfo> = Vec::new();
@@ -54,18 +54,23 @@ pub fn input_generator(input: &str) -> (Board, Vec<MoveInfo>) {
         } else {
             let match_info = re.captures(line);
             match match_info {
-                None => { continue; },
+                None => {
+                    continue;
+                }
                 Some(m) => {
                     let count: i32 = m.get(1).unwrap().as_str().parse().unwrap();
                     let mut src: u32 = m.get(2).unwrap().as_str().parse().unwrap();
                     let mut dest: u32 = m.get(3).unwrap().as_str().parse().unwrap();
                     src -= 1;
                     dest -= 1;
-                    moves.push(MoveInfo { source_stack: src, dest_stack: dest, crate_count: count });
+                    moves.push(MoveInfo {
+                        source_stack: src,
+                        dest_stack: dest,
+                        crate_count: count,
+                    });
                 }
             }
         }
-        
     }
     // println!("Initial Board:");
     // print_board(&stacks);
@@ -79,14 +84,21 @@ fn run_arrangement(board: &mut Board, moves: &[MoveInfo], do_reverse: bool) {
     let num_moves = moves.len();
     for (i, mov) in moves.iter().enumerate() {
         if DEBUG_MOVE {
-            println!("Executing move {} of {}: Move {} crates from stack {} to stack {}", i+1, num_moves, mov.crate_count, mov.source_stack, mov.dest_stack);
+            println!(
+                "Executing move {} of {}: Move {} crates from stack {} to stack {}",
+                i + 1,
+                num_moves,
+                mov.crate_count,
+                mov.source_stack,
+                mov.dest_stack
+            );
             println!("Board before move:");
             print_board(board);
         }
         let mut i = {
-            let stack =  board.get_mut(mov.source_stack as usize).unwrap();
+            let stack = board.get_mut(mov.source_stack as usize).unwrap();
             let mut xs = stack
-                .drain((stack.len()-mov.crate_count as usize)..)
+                .drain((stack.len() - mov.crate_count as usize)..)
                 .collect_vec();
             if do_reverse {
                 xs.reverse();
@@ -94,7 +106,10 @@ fn run_arrangement(board: &mut Board, moves: &[MoveInfo], do_reverse: bool) {
             xs
         };
         {
-            board.get_mut(mov.dest_stack as usize).unwrap().append(&mut i);
+            board
+                .get_mut(mov.dest_stack as usize)
+                .unwrap()
+                .append(&mut i);
         }
         if DEBUG_MOVE {
             println!("Board after move:");

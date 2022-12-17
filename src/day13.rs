@@ -1,10 +1,13 @@
-use std::{cmp::{Ordering, min}, fmt::Display};
+use aoc_runner_derive::{aoc, aoc_generator};
+use itertools::{EitherOrBoth, Itertools};
+use serde::{Deserialize, Serialize};
+use serde_json::from_str;
 #[allow(unused_imports)]
 use std::cmp::max;
-use aoc_runner_derive::{aoc_generator, aoc};
-use itertools::{Itertools, EitherOrBoth};
-use serde::{Serialize, Deserialize};
-use serde_json::from_str;
+use std::{
+    cmp::{min, Ordering},
+    fmt::Display,
+};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[serde(untagged)]
@@ -21,27 +24,29 @@ impl Ord for IntOrList {
         // Code assumes pairs will be checked against `<=`
         match (self, other) {
             /*
-                If both values are integers, the lower integer should come first. 
-                If the left integer is lower than the right integer, the inputs 
-                are in the right order. If the left integer is higher than the 
+                If both values are integers, the lower integer should come first.
+                If the left integer is lower than the right integer, the inputs
+                are in the right order. If the left integer is higher than the
                 right integer, the inputs are not in the right order. Otherwise,
                 the inputs are the same integer; continue checking the next part
                 of the input.
             */
             (Int(s), Int(o)) => s.cmp(o),
             /*
-                If both values are lists, compare the first value of each list,
-                then the second value, and so on. If the left list runs out of
-                items first, the inputs are in the right order. If the right
-                list runs out of items first, the inputs are not in the right
-                order. If the lists are the same length and no comparison makes
-                a decision about the order, continue checking the next part of
-                the input.
-             */
+               If both values are lists, compare the first value of each list,
+               then the second value, and so on. If the left list runs out of
+               items first, the inputs are in the right order. If the right
+               list runs out of items first, the inputs are not in the right
+               order. If the lists are the same length and no comparison makes
+               a decision about the order, continue checking the next part of
+               the input.
+            */
             (List(s), List(o)) => {
                 for i in s.iter().zip_longest(o) {
                     match i {
-                        EitherOrBoth::Both(a, b) if a.eq(b) => { continue; },
+                        EitherOrBoth::Both(a, b) if a.eq(b) => {
+                            continue;
+                        }
                         EitherOrBoth::Both(a, b) => {
                             let res = a.cmp(b);
                             if res == Ordering::Equal {
@@ -49,22 +54,26 @@ impl Ord for IntOrList {
                             } else {
                                 return res;
                             }
-                        },
-                        EitherOrBoth::Left(_) => { return Ordering::Greater; },
-                        EitherOrBoth::Right(_) => { return Ordering::Less; }
+                        }
+                        EitherOrBoth::Left(_) => {
+                            return Ordering::Greater;
+                        }
+                        EitherOrBoth::Right(_) => {
+                            return Ordering::Less;
+                        }
                     };
                 }
                 Ordering::Equal
             }
             /*
-                If exactly one value is an integer, convert the integer to a list
-                which contains that integer as its only value, then retry the 
-                comparison. For example, if comparing [0,0,0] and 2, convert the
-                right value to [2] (a list containing 2); the result is then found
-                by instead comparing [0,0,0] and [2].
-             */
-            (Int(s), o@List(_)) => List(vec![Int(*s)]).cmp(o),
-            (s@List(_), Int(o)) => s.cmp(&List(vec![Int(*o)])),
+               If exactly one value is an integer, convert the integer to a list
+               which contains that integer as its only value, then retry the
+               comparison. For example, if comparing [0,0,0] and 2, convert the
+               right value to [2] (a list containing 2); the result is then found
+               by instead comparing [0,0,0] and [2].
+            */
+            (Int(s), o @ List(_)) => List(vec![Int(*s)]).cmp(o),
+            (s @ List(_), Int(o)) => s.cmp(&List(vec![Int(*o)])),
         }
     }
 }
@@ -104,7 +113,6 @@ pub type GenData = Vec<(IntOrList, IntOrList)>;
 pub type InData<'a> = &'a [(IntOrList, IntOrList)];
 pub type OutData = usize;
 
-
 // Solution ---------------------------------------------------------
 // Choose One
 
@@ -114,19 +122,19 @@ pub fn input_generator(input: &str) -> GenData {
     let pair_list = input.split("\n\n");
     pair_list
         .map(|s| s.split_once("\n").unwrap())
-        .map(|(a, b)| (from_str(a).unwrap(),
-                                   from_str(b).unwrap()))
+        .map(|(a, b)| (from_str(a).unwrap(), from_str(b).unwrap()))
         .collect_vec()
 }
 
 #[aoc(day13, part1)]
 pub fn solve_part1(input: InData) -> OutData {
-    input.iter()
+    input
+        .iter()
         // .inspect(|(a, b)| {
         //     println!("a: {}\nb: {}\nOrd: {:?}\n\n", a, b, a.partial_cmp(b))
         // })
         .enumerate()
-        .filter(|(_, (a,b))| a <= b)
+        .filter(|(_, (a, b))| a <= b)
         .map(|(idx, _)| idx + 1)
         .sum()
 }
@@ -134,7 +142,8 @@ pub fn solve_part1(input: InData) -> OutData {
 #[aoc_generator(day13, part2)]
 pub fn input_generator_p2(input: &str) -> Vec<IntOrList> {
     let input = input.to_owned() + "\n[[2]]\n[[6]]\n";
-    input.lines()
+    input
+        .lines()
         .filter(|s| s.trim() != "")
         .map(|s| from_str(s).unwrap())
         .collect_vec()

@@ -1,8 +1,8 @@
+use aoc_runner_derive::{aoc, aoc_generator};
+use itertools::Itertools;
+use petgraph::{algo::dijkstra, prelude::*};
 #[allow(unused_imports)]
 use std::cmp::max;
-use aoc_runner_derive::{aoc_generator, aoc};
-use itertools::Itertools;
-use petgraph::{prelude::*, algo::dijkstra};
 
 pub struct ParseResults {
     graph: GraphType,
@@ -16,7 +16,13 @@ pub type GenData = ParseResults;
 pub type InData<'a> = &'a ParseResults;
 pub type OutData = u64;
 
-fn check_add_edges(graph: &mut GraphType, cell: &CellType, cell_idx: &NodeIndex<usize>, last_cell: &CellType, last_idx: &NodeIndex<usize>) {
+fn check_add_edges(
+    graph: &mut GraphType,
+    cell: &CellType,
+    cell_idx: &NodeIndex<usize>,
+    last_cell: &CellType,
+    last_idx: &NodeIndex<usize>,
+) {
     let diff = (*last_cell as i16) - (*cell as i16);
     let sig = diff.signum();
     match sig {
@@ -29,14 +35,16 @@ fn check_add_edges(graph: &mut GraphType, cell: &CellType, cell_idx: &NodeIndex<
         1 => {
             graph.add_edge(*last_idx, *cell_idx, ());
             if diff == 1 {
-                graph.add_edge(*cell_idx, *last_idx, ()); 
+                graph.add_edge(*cell_idx, *last_idx, ());
             }
         }
-        0 => { 
-            graph.add_edge(*cell_idx, *last_idx, ()); 
-            graph.add_edge(*last_idx, *cell_idx, ()); 
+        0 => {
+            graph.add_edge(*cell_idx, *last_idx, ());
+            graph.add_edge(*last_idx, *cell_idx, ());
         }
-        _ => { panic!("signum() returned an unexpected value: {}", sig) }
+        _ => {
+            panic!("signum() returned an unexpected value: {}", sig)
+        }
     }
 }
 
@@ -46,8 +54,14 @@ pub fn input_generator(input: &str) -> GenData {
 
     let input = input.trim_start();
 
-    let mut input = input.lines().map(|ln| ln.chars().collect_vec()).collect_vec();
-    let mut indices = input.iter().map(|ln| ln.iter().map(|_| 0 as usize).collect_vec()).collect_vec();
+    let mut input = input
+        .lines()
+        .map(|ln| ln.chars().collect_vec())
+        .collect_vec();
+    let mut indices = input
+        .iter()
+        .map(|ln| ln.iter().map(|_| 0 as usize).collect_vec())
+        .collect_vec();
 
     let mut starting_coords = (0, 0);
     let mut ending_coords = (0, 0);
@@ -68,7 +82,7 @@ pub fn input_generator(input: &str) -> GenData {
         for (col_idx, cell) in ln.iter().enumerate() {
             let idx = results.add_node(*cell);
             indices[ln_idx][col_idx] = idx.index();
-            
+
             if col_idx > 0 {
                 let last_cell = input[ln_idx][col_idx - 1];
                 let last_idx = NodeIndex::from(indices[ln_idx][col_idx - 1]);
@@ -79,7 +93,7 @@ pub fn input_generator(input: &str) -> GenData {
             if ln_idx > 0 {
                 let last_cell = input[ln_idx - 1][col_idx];
                 let last_idx = NodeIndex::from(indices[ln_idx - 1][col_idx]);
-                
+
                 check_add_edges(&mut results, cell, &idx, &last_cell, &last_idx);
             }
         }
@@ -94,7 +108,11 @@ pub fn input_generator(input: &str) -> GenData {
     // dbg!(ending);
     // dbg!(&results);
 
-    ParseResults { graph: results, starting, ending }
+    ParseResults {
+        graph: results,
+        starting,
+        ending,
+    }
 }
 
 #[aoc(day12, part1)]
@@ -107,7 +125,9 @@ pub fn solve_part1(input: InData) -> OutData {
 
     // dbg!(&results);
 
-    *results.get(&ending_idx).unwrap_or_else(|| panic!("Could not locate ending node in explored part of graph."))
+    *results
+        .get(&ending_idx)
+        .unwrap_or_else(|| panic!("Could not locate ending node in explored part of graph."))
 }
 
 #[aoc(day12, part2)]
@@ -118,8 +138,16 @@ pub fn solve_part2(input: InData) -> OutData {
     // Get the starting points...
     let possible_starts = {
         let node_list = graph.raw_nodes();
-        graph.node_indices()
-            .map(|idx| (idx, node_list.get(idx.index()).unwrap_or_else(|| panic!("Could not find node in graph {}", idx.index()))))
+        graph
+            .node_indices()
+            .map(|idx| {
+                (
+                    idx,
+                    node_list
+                        .get(idx.index())
+                        .unwrap_or_else(|| panic!("Could not find node in graph {}", idx.index())),
+                )
+            })
             .filter(|(_, a)| a.weight == 'a')
             .map(|(idx, _)| idx)
             .collect_vec()
@@ -130,11 +158,14 @@ pub fn solve_part2(input: InData) -> OutData {
 
     let search_results = dijkstra(&graph, ending_idx, None, |_| 1u64);
 
-    possible_starts.iter()
+    possible_starts
+        .iter()
         .filter(|idx| search_results.contains_key(idx))
-        .map(|idx| *search_results
-            .get(idx)
-            .unwrap_or_else(|| panic!("Could not locate node {} in search results.", idx.index())))
+        .map(|idx| {
+            *search_results.get(idx).unwrap_or_else(|| {
+                panic!("Could not locate node {} in search results.", idx.index())
+            })
+        })
         .min()
         .unwrap_or_else(|| panic!("No possible starts found in search results."))
 }

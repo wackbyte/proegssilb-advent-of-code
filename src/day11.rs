@@ -1,8 +1,8 @@
-#[allow(unused_imports)]
-use std::cmp::max;
-use std::ops::{Mul, Add};
 use aoc_runner_derive::aoc;
 use itertools::Itertools;
+#[allow(unused_imports)]
+use std::cmp::max;
+use std::ops::{Add, Mul};
 
 type WorryType = u64;
 type InspectedType = u64;
@@ -23,25 +23,57 @@ pub type InData<'a> = &'a [Monkey];
 pub type OutData = InspectedType;
 
 pub fn input_generator(input: &str) -> GenData {
-    let regex = regex::Regex::new(r#"Monkey (\d+):
+    let regex = regex::Regex::new(
+        r#"Monkey (\d+):
 \s+Starting items: ([1234567890, ]+)
 \s+Operation: new = (\w+|\d+) (.) (\w+|\d+)
 \s+Test: divisible by (\d+)
 \s+If true: throw to monkey (\d+)
-\s+If false: throw to monkey (\d+)"#).unwrap();
+\s+If false: throw to monkey (\d+)"#,
+    )
+    .unwrap();
 
     let mut results: Vec<Monkey> = Vec::new();
 
     for raw_monkey in regex.captures_iter(input) {
         let monkey_number: i32 = raw_monkey.get(1).unwrap().as_str().parse().unwrap();
-        let starting_items = raw_monkey.get(2).unwrap().as_str().split(", ").map(|s| s.parse::<WorryType>().unwrap()).collect_vec();
-        let op = make_op(raw_monkey.get(3).unwrap().as_str(), raw_monkey.get(4).unwrap().as_str(), raw_monkey.get(5).unwrap().as_str());
-        let target_true = raw_monkey.get(7).unwrap().as_str().parse::<usize>().unwrap();
-        let target_false = raw_monkey.get(8).unwrap().as_str().parse::<usize>().unwrap();
+        let starting_items = raw_monkey
+            .get(2)
+            .unwrap()
+            .as_str()
+            .split(", ")
+            .map(|s| s.parse::<WorryType>().unwrap())
+            .collect_vec();
+        let op = make_op(
+            raw_monkey.get(3).unwrap().as_str(),
+            raw_monkey.get(4).unwrap().as_str(),
+            raw_monkey.get(5).unwrap().as_str(),
+        );
+        let target_true = raw_monkey
+            .get(7)
+            .unwrap()
+            .as_str()
+            .parse::<usize>()
+            .unwrap();
+        let target_false = raw_monkey
+            .get(8)
+            .unwrap()
+            .as_str()
+            .parse::<usize>()
+            .unwrap();
         let test_val: WorryType = raw_monkey.get(6).unwrap().as_str().parse().unwrap();
         let throw_test = Box::new(move |old: WorryType| old % test_val == 0);
 
-        let monke = Monkey {id: monkey_number, items: starting_items, operation: op, items_inspected: 0, throw_test, target_false, target_true, throw_test_val: test_val};
+        let monke = Monkey {
+            id: monkey_number,
+            items: starting_items,
+            operation: op,
+            items_inspected: 0,
+            throw_test,
+            target_false,
+            target_true,
+            throw_test_val: test_val,
+        };
         results.push(monke);
     }
 
@@ -60,12 +92,15 @@ fn make_op(left: &str, op: &str, right: &str) -> Box<dyn Fn(WorryType) -> WorryT
         ("old", _) => {
             let y: WorryType = right.parse().unwrap();
             Box::new(move |x| f(x, y))
-        },
+        }
         (_, "old") => {
             let y: WorryType = left.parse().unwrap();
             Box::new(move |x| f(y, x))
-        },
-        _ => panic!("Invalid call detected (left, op, right): {} {} {}", left, op, right),
+        }
+        _ => panic!(
+            "Invalid call detected (left, op, right): {} {} {}",
+            left, op, right
+        ),
     }
 }
 
@@ -88,7 +123,12 @@ pub fn solve_part1(input: &str) -> OutData {
     monkeys[0].items_inspected * monkeys[1].items_inspected
 }
 
-fn process_turn(monkeys: &mut [Monkey], idx: usize, decrease_worry: bool, modulo: Option<WorryType>) {
+fn process_turn(
+    monkeys: &mut [Monkey],
+    idx: usize,
+    decrease_worry: bool,
+    modulo: Option<WorryType>,
+) {
     if cfg!(debug_assertions) {
         if let Some(base) = modulo {
             println!("Monkey {} (working modulo {})", monkeys[idx].id, base);
@@ -121,18 +161,31 @@ fn process_turn(monkeys: &mut [Monkey], idx: usize, decrease_worry: bool, modulo
             if decrease_worry {
                 item /= 3;
                 if cfg!(debug_assertions) {
-                    println!("\t\tMonkey gets bored with item. Worry level shifts to {}", item);
+                    println!(
+                        "\t\tMonkey gets bored with item. Worry level shifts to {}",
+                        item
+                    );
                 }
             }
             let check_result = current_monkey.throw_test.as_ref()(item);
             if cfg!(debug_assertions) {
-                println!("\t\tCurrent worry level {} check", if check_result {"passes"} else {"fails"});
+                println!(
+                    "\t\tCurrent worry level {} check",
+                    if check_result { "passes" } else { "fails" }
+                );
             }
-            let target_idx = if check_result {current_monkey.target_true} else {current_monkey.target_false};
+            let target_idx = if check_result {
+                current_monkey.target_true
+            } else {
+                current_monkey.target_false
+            };
             (target_idx, item)
         };
         if cfg!(debug_assertions) {
-            println!("\t\tItem with worry level {} is thrown to monkey {}", item, target_idx);
+            println!(
+                "\t\tItem with worry level {} is thrown to monkey {}",
+                item, target_idx
+            );
         }
         {
             monkeys[target_idx].items.push(item);

@@ -1,17 +1,16 @@
+use aoc_runner_derive::{aoc, aoc_generator};
+use itertools::Itertools;
 #[allow(unused_imports)]
 use std::cmp::max;
-use aoc_runner_derive::{aoc_generator, aoc};
-use itertools::Itertools;
 
 pub enum Instruction {
     Noop,
-    Addx(i32)
+    Addx(i32),
 }
 
 pub type GenData = Vec<Instruction>;
 pub type InData<'a> = &'a [Instruction];
 pub type OutData = i32;
-
 
 // Solution ---------------------------------------------------------
 // Choose One
@@ -36,16 +35,18 @@ pub fn input_generator(input: &str) -> GenData {
 }
 
 fn convert_instrs_to_register_stream(instrs: InData) -> Vec<(i32, i32)> {
-    instrs.iter().map(|instr| {
-        match instr {
+    instrs
+        .iter()
+        .map(|instr| match instr {
             Instruction::Noop => (1, 0),
             Instruction::Addx(amt) => (2, *amt),
-        }
-    }).scan((1, 1), |(cycle_count, reg_val), (cyc_delta, reg_delta)| {
-        *cycle_count += cyc_delta;
-        *reg_val += reg_delta;
-        Some((*cycle_count, *reg_val))
-    }).collect_vec()
+        })
+        .scan((1, 1), |(cycle_count, reg_val), (cyc_delta, reg_delta)| {
+            *cycle_count += cyc_delta;
+            *reg_val += reg_delta;
+            Some((*cycle_count, *reg_val))
+        })
+        .collect_vec()
 }
 
 #[aoc(day10, part1)]
@@ -70,7 +71,13 @@ pub fn solve_part1(input: InData) -> OutData {
 }
 
 fn format_screen(pixels: &str) -> String {
-    pixels.chars().chunks(40).into_iter().map(|mut c| c.join("")).take(6).join("\n")
+    pixels
+        .chars()
+        .chunks(40)
+        .into_iter()
+        .map(|mut c| c.join(""))
+        .take(6)
+        .join("\n")
 }
 
 #[aoc(day10, part2)]
@@ -86,7 +93,10 @@ pub fn solve_part2(input: InData) -> String {
         let ((last_cyc, last_reg), (curr_cyc, _)) = curr_window;
 
         if cycle_cntr < *last_cyc {
-            panic!("Cycle counter prior to expected range. Counter: {}, last_cyc: {}, curr_cyc: {}", cycle_cntr, last_cyc, curr_cyc);
+            panic!(
+                "Cycle counter prior to expected range. Counter: {}, last_cyc: {}, curr_cyc: {}",
+                cycle_cntr, last_cyc, curr_cyc
+            );
         }
         if cycle_cntr >= *curr_cyc {
             nxt = instr_iter.next();
@@ -125,8 +135,18 @@ pub fn solve_part2(input: InData) -> String {
                 }
             }
 
-            println!("Sprite:\n0123456789012345678901234567890123456789\n{}", sprite_vis);
-            println!("disp:\n{}", disp.chars().chunks(40).into_iter().map(|mut ch| ch.join("")).join("\n"));
+            println!(
+                "Sprite:\n0123456789012345678901234567890123456789\n{}",
+                sprite_vis
+            );
+            println!(
+                "disp:\n{}",
+                disp.chars()
+                    .chunks(40)
+                    .into_iter()
+                    .map(|mut ch| ch.join(""))
+                    .join("\n")
+            );
             println!("{:->45}", "");
         }
 

@@ -1,14 +1,13 @@
-
-use std::collections::HashSet;
-use aoc_runner_derive::{aoc_generator, aoc};
+use aoc_runner_derive::{aoc, aoc_generator};
 use itertools::{Itertools, MinMaxResult};
+use std::collections::HashSet;
 
 #[derive(Debug)]
 pub enum Direction {
     Left,
     Right,
     Up,
-    Down
+    Down,
 }
 
 #[derive(Debug)]
@@ -21,7 +20,6 @@ pub type GenData = Vec<Movement>;
 pub type InData<'a> = &'a [Movement];
 pub type OutData = usize;
 
-
 // Solution ---------------------------------------------------------
 // Choose One
 
@@ -29,14 +27,28 @@ pub type OutData = usize;
 pub fn input_generator(input: &str) -> GenData {
     let mut results: GenData = Vec::new();
     for line in input.lines() {
-        if line.trim() == "" { continue; }
+        if line.trim() == "" {
+            continue;
+        }
         let (dir_b, count_str) = line.split_once(" ").unwrap();
         let count: u8 = str::parse::<u8>(count_str).unwrap();
         let instruction = match dir_b {
-            "R" => Movement { dir: Direction::Right, count },
-            "L" => Movement { dir: Direction::Left, count },
-            "D" => Movement { dir: Direction::Down, count },
-            "U" => Movement { dir: Direction::Up, count },
+            "R" => Movement {
+                dir: Direction::Right,
+                count,
+            },
+            "L" => Movement {
+                dir: Direction::Left,
+                count,
+            },
+            "D" => Movement {
+                dir: Direction::Down,
+                count,
+            },
+            "U" => Movement {
+                dir: Direction::Up,
+                count,
+            },
             _ => panic!("Invalid movement direction: {}", line),
         };
         results.push(instruction);
@@ -62,10 +74,19 @@ pub fn solve_part1(input: InData) -> OutData {
             h_loc = (h_loc.0 + offset.0, h_loc.1 + offset.1);
             let delta: (i32, i32) = (h_loc.0 - t_loc.0, h_loc.1 - t_loc.1);
             match (delta.0.abs(), delta.1.abs()) {
-                (1, 0) | (0, 1) | (1, 1) | (0, 0) => { continue; }
-                (_, 0) => { t_loc.0 += delta.0.signum(); }
-                (0, _) => { t_loc.1 += delta.1.signum(); }
-                (_, _) => { t_loc.0 += delta.0.signum(); t_loc.1 += delta.1.signum(); }
+                (1, 0) | (0, 1) | (1, 1) | (0, 0) => {
+                    continue;
+                }
+                (_, 0) => {
+                    t_loc.0 += delta.0.signum();
+                }
+                (0, _) => {
+                    t_loc.1 += delta.1.signum();
+                }
+                (_, _) => {
+                    t_loc.0 += delta.0.signum();
+                    t_loc.1 += delta.1.signum();
+                }
             }
             tail_coords.insert(t_loc);
         }
@@ -79,16 +100,17 @@ fn draw_rope(rope: &[(i32, i32)]) {
     let MinMaxResult::MinMax(y_low, y_high) = rope.iter().map(|k| k.1 ).minmax() else { panic!("Grid is only one row.") };
 
     let offset_x = -x_low; // x == 0 => do nothing, x < 0 => offset right, x > 0 should never happen (start is 0)
-    let offset_y = -y_low; 
+    let offset_y = -y_low;
 
     let grid_width = (x_high + offset_x + 1) as usize;
     let grid_height = (y_high + offset_y + 1) as usize;
 
     let mut grid = vec![vec!['.'; grid_width]; grid_height];
-    
+
     for (idx, knot) in rope.iter().enumerate() {
         let (x, y) = knot;
-        grid[(y + offset_y) as usize][(x + offset_x) as usize] = idx.to_string().chars().next().unwrap()
+        grid[(y + offset_y) as usize][(x + offset_x) as usize] =
+            idx.to_string().chars().next().unwrap()
     }
 
     println!("Current rope grid:");
@@ -118,10 +140,19 @@ pub fn solve_part2(input: InData) -> OutData {
                 let mut knot = knots.get_mut(current_idx).unwrap();
                 let delta: (i32, i32) = (old_knot.0 - knot.0, old_knot.1 - knot.1);
                 match (delta.0.abs(), delta.1.abs()) {
-                    (1, 0) | (0, 1) | (1, 1) | (0, 0) => { continue; }
-                    (_, 0) => { knot.0 += delta.0.signum(); }
-                    (0, _) => { knot.1 += delta.1.signum(); }
-                    (_, _) => { knot.0 += delta.0.signum(); knot.1 += delta.1.signum(); }
+                    (1, 0) | (0, 1) | (1, 1) | (0, 0) => {
+                        continue;
+                    }
+                    (_, 0) => {
+                        knot.0 += delta.0.signum();
+                    }
+                    (0, _) => {
+                        knot.1 += delta.1.signum();
+                    }
+                    (_, _) => {
+                        knot.0 += delta.0.signum();
+                        knot.1 += delta.1.signum();
+                    }
                 }
             }
             tail_coords.insert(knots[KNOT_COUNT - 1]);

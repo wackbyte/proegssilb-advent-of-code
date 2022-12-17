@@ -29,7 +29,10 @@ struct Terminal {
 
 impl Terminal {
     fn new() -> Terminal {
-        Terminal { current_dir: vec![], fs: Folder::new() }
+        Terminal {
+            current_dir: vec![],
+            fs: Folder::new(),
+        }
     }
 }
 
@@ -42,7 +45,11 @@ struct Folder {
 
 impl Folder {
     fn new() -> Folder {
-        Folder { subdirs: HashMap::new(), files: vec![], size: 0 }
+        Folder {
+            subdirs: HashMap::new(),
+            files: vec![],
+            size: 0,
+        }
     }
 
     fn get_path(&self, p: &Path) -> &Folder {
@@ -62,7 +69,6 @@ impl Folder {
     }
 
     fn compute_size(&mut self) {
-
         for f in self.subdirs.values_mut() {
             f.compute_size();
         }
@@ -79,7 +85,6 @@ impl Folder {
     }
 }
 
-
 #[aoc_generator(day07, default)]
 pub fn day07_generator(input: &str) -> Vec<DataLine> {
     let mut results: Vec<DataLine> = Vec::new();
@@ -94,40 +99,54 @@ pub fn day07_generator(input: &str) -> Vec<DataLine> {
                     match dir {
                         "/" => DataLine::CommandCdToRoot,
                         ".." => DataLine::CommandCdUpdir,
-                        _ => DataLine::CommandCdToSubdir(dir.to_string())
+                        _ => DataLine::CommandCdToSubdir(dir.to_string()),
                     }
                 }
-            },
-            b'd' => DataLine::ListingDirectory(line.split_whitespace().skip(1).next().unwrap().to_string()),
+            }
+            b'd' => DataLine::ListingDirectory(
+                line.split_whitespace().skip(1).next().unwrap().to_string(),
+            ),
             b'0' | b'1' | b'2' | b'3' | b'4' | b'5' | b'6' | b'7' | b'8' | b'9' => {
                 let (size, name) = line.split_once(" ").unwrap();
                 DataLine::ListingFile(size.parse().unwrap(), name.to_string())
             }
-            _ => panic!("Unknown line: '{}'", line)
+            _ => panic!("Unknown line: '{}'", line),
         };
         results.push(data)
     }
-    
+
     results
 }
 
 fn build_fs_step(term: &mut Terminal, cmd: &DataLine) {
     match cmd {
-        DataLine::CommandCdToRoot => { term.current_dir = Vec::new() },
-        DataLine::CommandCdUpdir => { term.current_dir.pop(); },
+        DataLine::CommandCdToRoot => term.current_dir = Vec::new(),
+        DataLine::CommandCdUpdir => {
+            term.current_dir.pop();
+        }
         DataLine::CommandCdToSubdir(subdir) => {
-            assert!(term.fs.get_path(&term.current_dir).subdirs.contains_key(subdir), "Tried to cd into directory not known to exist!");
+            assert!(
+                term.fs
+                    .get_path(&term.current_dir)
+                    .subdirs
+                    .contains_key(subdir),
+                "Tried to cd into directory not known to exist!"
+            );
             term.current_dir.push(subdir.clone());
-        },
-        DataLine::CommandLs => {},
+        }
+        DataLine::CommandLs => {}
         DataLine::ListingFile(size, _name) => {
             let dir = term.fs.get_path_mut(&term.current_dir);
-            dir.files.push(FileInfo {size: *size});
-        },
+            dir.files.push(FileInfo { size: *size });
+        }
         DataLine::ListingDirectory(name) => {
             let dir = term.fs.get_path_mut(&term.current_dir);
-            dir.subdirs.entry(name.clone()).or_insert(Folder { subdirs: HashMap::new(), files: vec![], size: 0 });
-        },
+            dir.subdirs.entry(name.clone()).or_insert(Folder {
+                subdirs: HashMap::new(),
+                files: vec![],
+                size: 0,
+            });
+        }
     };
 }
 
@@ -138,7 +157,10 @@ pub fn solve_part1(input: &[DataLine]) -> Day7Output {
         build_fs_step(&mut t, dl);
     }
 
-    let Terminal { current_dir: mut _dir, mut fs } = t;
+    let Terminal {
+        current_dir: mut _dir,
+        mut fs,
+    } = t;
 
     fs.compute_size();
 
@@ -191,7 +213,10 @@ pub fn solve_part2(input: &[DataLine]) -> Day7Output {
         build_fs_step(&mut t, dl);
     }
 
-    let Terminal { current_dir: mut _dir, mut fs } = t;
+    let Terminal {
+        current_dir: mut _dir,
+        mut fs,
+    } = t;
 
     fs.compute_size();
 

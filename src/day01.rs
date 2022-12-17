@@ -1,5 +1,5 @@
+use aoc_runner_derive::{aoc, aoc_generator};
 use std::collections::BinaryHeap;
-use aoc_runner_derive::{aoc_generator, aoc};
 
 #[aoc_generator(day01)]
 pub fn input_generator(input: &str) -> Vec<i32> {
@@ -19,10 +19,7 @@ pub fn input_generator(input: &str) -> Vec<i32> {
 
 #[aoc(day01, part1)]
 pub fn solve_part1(input: &[i32]) -> i32 {
-    *input
-        .iter()
-        .max()
-        .unwrap()
+    *input.iter().max().unwrap()
 }
 
 #[aoc(day01, part2)]

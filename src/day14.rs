@@ -1,9 +1,13 @@
+use aoc_runner_derive::{aoc, aoc_generator};
 use core::panic;
-use std::cmp::max;
-use std::{io::{stdout, Write}, fmt::Display, cmp::min};
-use aoc_runner_derive::{aoc_generator, aoc};
 use grid::Grid;
 use itertools::{Itertools, MinMaxResult};
+use std::cmp::max;
+use std::{
+    cmp::min,
+    fmt::Display,
+    io::{stdout, Write},
+};
 use termion::cursor;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Default)]
@@ -35,14 +39,17 @@ pub type OutData = u64;
 
 pub fn parser(input: &str, gen_floor: bool) -> GenData {
     let input = input.trim_start();
-    let paths: Vec<Vec<(usize, usize)>> = input.lines().map(|path| {
-        path.split(" -> ").map(|s| {
+    let paths: Vec<Vec<(usize, usize)>> = input
+        .lines()
+        .map(|path| {
+            path.split(" -> ").map(|s| {
             let Some((x, y)) = s.split_once(',') else { panic!("Invalid coordinate: {}", s) };
             let x: usize = x.parse().unwrap();
             let y: usize = y.parse().unwrap();
             (x, y)
         }).collect_vec()
-    }).collect_vec();
+        })
+        .collect_vec();
 
     let MinMaxResult::MinMax(min_x, max_x) = paths.iter().flat_map(|ps| ps.iter().map(|pt| pt.0)).minmax() else {
         panic!("MinMaxResult X produced fewer than 2 distinct values.");
@@ -59,7 +66,11 @@ pub fn parser(input: &str, gen_floor: bool) -> GenData {
 
     let grid: Grid<Cell> = Grid::new(max_y + 6, max_x - x_offset + 200);
 
-    let mut res = GenData { grid, x_offset, y_abyss};
+    let mut res = GenData {
+        grid,
+        x_offset,
+        y_abyss,
+    };
 
     for path in paths {
         for seg in path.windows(2) {
@@ -73,7 +84,11 @@ pub fn parser(input: &str, gen_floor: bool) -> GenData {
                     *cell = Stone;
                 }
             } else {
-                assert_eq!(p1.1, p2.1, "Neither X nor Y were equal in segment: {:?}", seg);
+                assert_eq!(
+                    p1.1, p2.1,
+                    "Neither X nor Y were equal in segment: {:?}",
+                    seg
+                );
                 let y = p1.1;
                 let start = min(p1.0, p2.0);
                 let stop = max(p1.0, p2.0);
@@ -92,7 +107,6 @@ pub fn parser(input: &str, gen_floor: bool) -> GenData {
         }
     }
 
-
     //draw_cave(&res, "Initial Grid:");
 
     res
@@ -109,22 +123,48 @@ pub fn input_p2(input: &str) -> GenData {
 }
 
 fn get_next_locs(data: &GenData, (x, y): (usize, usize)) -> Option<[Cell; 3]> {
-    let GenData {grid, x_offset, y_abyss } = data;
+    let GenData {
+        grid,
+        x_offset,
+        y_abyss,
+    } = data;
 
-    if y+1 == *y_abyss {
+    if y + 1 == *y_abyss {
         return None;
     }
 
     let (x, false) = x.overflowing_sub(*x_offset) else {panic!("Could not offset X-Coord of point {:?} by {}", (x, y), x_offset)};
-    let c1 = *grid.get(y + 1, x).unwrap_or_else(|| panic!("Coords could not be offset: {:?} {}", (x + x_offset, y), "c1"));
-    let c2 = *grid.get(y + 1, x-1).unwrap_or_else(|| panic!("Coords could not be offset: {:?} {}", (x + x_offset, y), "c2"));
-    let c3 = *grid.get(y + 1, x + 1).unwrap_or_else(|| panic!("Coords could not be offset: {:?} {}", (x + x_offset, y), "c3"));
+    let c1 = *grid.get(y + 1, x).unwrap_or_else(|| {
+        panic!(
+            "Coords could not be offset: {:?} {}",
+            (x + x_offset, y),
+            "c1"
+        )
+    });
+    let c2 = *grid.get(y + 1, x - 1).unwrap_or_else(|| {
+        panic!(
+            "Coords could not be offset: {:?} {}",
+            (x + x_offset, y),
+            "c2"
+        )
+    });
+    let c3 = *grid.get(y + 1, x + 1).unwrap_or_else(|| {
+        panic!(
+            "Coords could not be offset: {:?} {}",
+            (x + x_offset, y),
+            "c3"
+        )
+    });
     Some([c1, c2, c3])
 }
 
 #[allow(unused)]
 fn draw_cave(cave: &GenData, msg: &str) {
-    let GenData {grid, x_offset, y_abyss: _} = cave;
+    let GenData {
+        grid,
+        x_offset,
+        y_abyss: _,
+    } = cave;
 
     let mut s = stdout();
     println!("{}{}", cursor::Save, msg);
@@ -134,7 +174,7 @@ fn draw_cave(cave: &GenData, msg: &str) {
                 print!("+");
             } else {
                 print!("{}", c);
-            }            
+            }
         }
         println!("")
     }
@@ -144,7 +184,11 @@ fn draw_cave(cave: &GenData, msg: &str) {
 
 #[aoc(day14, part1)]
 pub fn solve_part1(input: &GenData) -> OutData {
-    let mut input = GenData { x_offset: input.x_offset, grid: input.grid.clone(), y_abyss: input.y_abyss,};
+    let mut input = GenData {
+        x_offset: input.x_offset,
+        grid: input.grid.clone(),
+        y_abyss: input.y_abyss,
+    };
     let mut sand_counter = 0;
     while input.grid.get(0, 500 - input.x_offset) != Some(&Sand) {
         sand_counter += 1;
@@ -154,21 +198,42 @@ pub fn solve_part1(input: &GenData) -> OutData {
         };
         while next_locs.iter().any(|c| *c == Nothing) {
             match next_locs {
-                [Nothing, _, _] => { current_loc.1 += 1; },
-                [_, Nothing, _] => { current_loc.1 += 1; current_loc.0 -= 1; },
-                [_, _, Nothing] => { current_loc.1 += 1; current_loc.0 += 1; },
-                _ => { panic!("Logical contradiction while selecting next location") },
+                [Nothing, _, _] => {
+                    current_loc.1 += 1;
+                }
+                [_, Nothing, _] => {
+                    current_loc.1 += 1;
+                    current_loc.0 -= 1;
+                }
+                [_, _, Nothing] => {
+                    current_loc.1 += 1;
+                    current_loc.0 += 1;
+                }
+                _ => {
+                    panic!("Logical contradiction while selecting next location")
+                }
             }
-            
+
             //draw_cave(&input, &format!("Sand Unit {}", sand_counter));
             match get_next_locs(&input, current_loc) {
-                Some(nl) => {next_locs = nl;},
-                None => {return sand_counter - 1;}
+                Some(nl) => {
+                    next_locs = nl;
+                }
+                None => {
+                    return sand_counter - 1;
+                }
             }
         }
 
-        let c = input.grid.get_mut(current_loc.1, current_loc.0 - input.x_offset).expect("Final location for grain outside of grid.");
-        assert_eq!(*c, Nothing, "Expected location {:?} to be empty, but found {:?}", current_loc, c);
+        let c = input
+            .grid
+            .get_mut(current_loc.1, current_loc.0 - input.x_offset)
+            .expect("Final location for grain outside of grid.");
+        assert_eq!(
+            *c, Nothing,
+            "Expected location {:?} to be empty, but found {:?}",
+            current_loc, c
+        );
         *c = Sand;
     }
 
@@ -177,7 +242,11 @@ pub fn solve_part1(input: &GenData) -> OutData {
 
 #[aoc(day14, part2)]
 pub fn solve_part2(input: &GenData) -> OutData {
-    let mut input = GenData { x_offset: input.x_offset, grid: input.grid.clone(), y_abyss: input.y_abyss,};
+    let mut input = GenData {
+        x_offset: input.x_offset,
+        grid: input.grid.clone(),
+        y_abyss: input.y_abyss,
+    };
     let mut sand_counter = 0;
     while input.grid.get(0, 500 - input.x_offset) != Some(&Sand) {
         sand_counter += 1;
@@ -187,21 +256,42 @@ pub fn solve_part2(input: &GenData) -> OutData {
         };
         while next_locs.iter().any(|c| *c == Nothing) {
             match next_locs {
-                [Nothing, _, _] => { current_loc.1 += 1; },
-                [_, Nothing, _] => { current_loc.1 += 1; current_loc.0 -= 1; },
-                [_, _, Nothing] => { current_loc.1 += 1; current_loc.0 += 1; },
-                _ => { panic!("Logical contradiction while selecting next location") },
+                [Nothing, _, _] => {
+                    current_loc.1 += 1;
+                }
+                [_, Nothing, _] => {
+                    current_loc.1 += 1;
+                    current_loc.0 -= 1;
+                }
+                [_, _, Nothing] => {
+                    current_loc.1 += 1;
+                    current_loc.0 += 1;
+                }
+                _ => {
+                    panic!("Logical contradiction while selecting next location")
+                }
             }
-            
+
             //draw_cave(&input, &format!("Sand Unit {}", sand_counter));
             match get_next_locs(&input, current_loc) {
-                Some(nl) => {next_locs = nl;},
-                None => {return sand_counter - 1;}
+                Some(nl) => {
+                    next_locs = nl;
+                }
+                None => {
+                    return sand_counter - 1;
+                }
             }
         }
 
-        let c = input.grid.get_mut(current_loc.1, current_loc.0 - input.x_offset).expect("Final location for grain outside of grid.");
-        assert_eq!(*c, Nothing, "Expected location {:?} to be empty, but found {:?}", current_loc, c);
+        let c = input
+            .grid
+            .get_mut(current_loc.1, current_loc.0 - input.x_offset)
+            .expect("Final location for grain outside of grid.");
+        assert_eq!(
+            *c, Nothing,
+            "Expected location {:?} to be empty, but found {:?}",
+            current_loc, c
+        );
         *c = Sand;
     }
 

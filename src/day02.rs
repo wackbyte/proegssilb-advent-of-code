@@ -1,10 +1,10 @@
-use aoc_runner_derive::{aoc_generator, aoc};
+use aoc_runner_derive::{aoc, aoc_generator};
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum GameThrow {
     Rock,
     Paper,
-    Scissors
+    Scissors,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
@@ -29,13 +29,13 @@ pub fn input_generator(input: &str) -> Vec<RoundInput> {
             b'A' => GameThrow::Rock,
             b'B' => GameThrow::Paper,
             b'C' => GameThrow::Scissors,
-            _ => panic!("Invalid entry found for opponent move: {:?}", round_str)
+            _ => panic!("Invalid entry found for opponent move: {:?}", round_str),
         };
         let self_move = match self_str {
             b'X' => SecondColumn::X,
             b'Y' => SecondColumn::Y,
             b'Z' => SecondColumn::Z,
-            _ => panic!("Invalid entry found for second_column: {:?}", round_str)
+            _ => panic!("Invalid entry found for second_column: {:?}", round_str),
         };
         results.push((opp_move, self_move));
     }
@@ -102,18 +102,10 @@ fn score(round: Round) -> u64 {
 
 #[aoc(day02, part1)]
 pub fn solve_part1(input: &[RoundInput]) -> u64 {
-    input
-        .iter()
-        .map(interpret_round_p1)
-        .map(score)
-        .sum()
+    input.iter().map(interpret_round_p1).map(score).sum()
 }
 
 #[aoc(day02, part2)]
 pub fn solve_part2(input: &[RoundInput]) -> u64 {
-    input.iter()
-        .map(interpret_round_p2)
-        .map(score)
-        .sum()
+    input.iter().map(interpret_round_p2).map(score).sum()
 }
-

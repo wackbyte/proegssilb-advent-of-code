@@ -1,7 +1,7 @@
+extern crate gridly_grids;
 extern crate itertools;
 extern crate regex;
 extern crate termion;
-extern crate gridly_grids;
 
 use aoc_runner_derive::aoc_lib;
 
@@ -22,4 +22,4 @@ pub mod day14;
 pub mod day15;
 pub mod day16;
 
-aoc_lib!{ year = 2022 }
+aoc_lib! { year = 2022 }

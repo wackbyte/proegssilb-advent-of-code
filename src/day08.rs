@@ -1,7 +1,7 @@
-#[allow(unused_imports)]
-use std::cmp::max;
 use aoc_runner_derive::aoc;
 use itertools::Itertools;
+#[allow(unused_imports)]
+use std::cmp::max;
 
 pub type Day8Output = u64;
 
@@ -24,28 +24,40 @@ pub fn solve_part1(input: &str) -> Day8Output {
             for r in 0..row_num {
                 vis = vis && grid[r][col_num] < *cell;
             }
-            if vis { count += 1; continue;}
+            if vis {
+                count += 1;
+                continue;
+            }
 
             // Down
             let mut vis = true;
-            for r in row_num+1..grid.len() {
+            for r in row_num + 1..grid.len() {
                 vis = vis && grid[r][col_num] < *cell;
             }
-            if vis { count += 1; continue;}
+            if vis {
+                count += 1;
+                continue;
+            }
 
             // Left
             let mut vis = true;
             for c in 0..col_num {
                 vis = vis && grid[row_num][c] < *cell;
             }
-            if vis { count += 1; continue;}
+            if vis {
+                count += 1;
+                continue;
+            }
 
             // Right
             let mut vis = true;
-            for c in col_num+1..row.len() {
+            for c in col_num + 1..row.len() {
                 vis = vis && grid[row_num][c] < *cell;
             }
-            if vis { count += 1; continue;}
+            if vis {
+                count += 1;
+                continue;
+            }
         }
     }
 
@@ -74,7 +86,7 @@ fn scenic_score(grid: &Vec<Vec<u8>>, row_num: usize, col_num: usize) -> u64 {
 
     // Down
     let mut subscore = 0u64;
-    for r in row_num+1..grid.len() {
+    for r in row_num + 1..grid.len() {
         let target = grid[r][col_num];
         subscore += 1;
         if target >= cell {
@@ -96,7 +108,7 @@ fn scenic_score(grid: &Vec<Vec<u8>>, row_num: usize, col_num: usize) -> u64 {
 
     // Right
     let mut subscore = 0u64;
-    for c in col_num+1..row.len() {
+    for c in col_num + 1..row.len() {
         let target = grid[row_num][c];
         subscore += 1;
         if target >= cell {
@@ -135,7 +147,10 @@ pub fn test_part1() {
 }
 
 pub fn test_part2() {
-    let grid = TEST_IN.lines().map(|s| s.bytes().collect_vec()).collect_vec();
+    let grid = TEST_IN
+        .lines()
+        .map(|s| s.bytes().collect_vec())
+        .collect_vec();
     assert_eq!(scenic_score(&grid, 1, 2), 4);
     assert_eq!(scenic_score(&grid, 3, 2), 8);
     assert_eq!(solve_part2(TEST_IN), 8);

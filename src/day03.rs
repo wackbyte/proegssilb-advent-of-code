@@ -2,16 +2,19 @@ use aoc_runner_derive::aoc;
 use itertools::Itertools;
 
 fn find_error(rucksacks: &str) -> impl Iterator<Item = &u8> {
-    let half = rucksacks.len()/2;
+    let half = rucksacks.len() / 2;
     let [left, right] = [rucksacks[..half].as_bytes(), rucksacks[half..].as_bytes()];
-    left.iter().unique().chain(right.iter().unique()).duplicates()
+    left.iter()
+        .unique()
+        .chain(right.iter().unique())
+        .duplicates()
 }
 
 fn error_priority(error: &u8) -> i32 {
     match error {
         b'a'..=b'z' => (error - b'a' + 1) as i32,
         b'A'..=b'Z' => (error - b'A' + 27) as i32,
-        _ => panic!("Incorrect error found: {:?}", error)
+        _ => panic!("Incorrect error found: {:?}", error),
     }
 }
 
@@ -22,11 +25,8 @@ pub fn solve_part1(input: &str) -> i32 {
 
 #[aoc(day03, part2)]
 pub fn solve_part2(input: &str) -> i32 {
-    let groups = input
-        .lines()
-        .map(|l| l.as_bytes())
-        .chunks(3);
-    
+    let groups = input.lines().map(|l| l.as_bytes()).chunks(3);
+
     let mut priority_sum = 0;
 
     'groups: for elf_group in &groups {
@@ -47,10 +47,22 @@ pub fn solve_part2(input: &str) -> i32 {
 
 #[test]
 fn test_find_error() {
-    assert_eq!(find_error("vJrwpWtwJgWrhcsFMMfFFhFp").collect_vec(), vec![&b'p']);
-    assert_eq!(find_error("jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL").collect_vec(), vec![&b'L']);
+    assert_eq!(
+        find_error("vJrwpWtwJgWrhcsFMMfFFhFp").collect_vec(),
+        vec![&b'p']
+    );
+    assert_eq!(
+        find_error("jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL").collect_vec(),
+        vec![&b'L']
+    );
     assert_eq!(find_error("PmmdzqPrVvPwwTWBwg").collect_vec(), vec![&b'P']);
-    assert_eq!(find_error("wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn").collect_vec(), vec![&b'v']);
+    assert_eq!(
+        find_error("wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn").collect_vec(),
+        vec![&b'v']
+    );
     assert_eq!(find_error("ttgJtRGJQctTZtZT").collect_vec(), vec![&b't']);
-    assert_eq!(find_error("CrZsJsPPZsGzwwsLwLmpwMDw").collect_vec(), vec![&b's']);
+    assert_eq!(
+        find_error("CrZsJsPPZsGzwwsLwLmpwMDw").collect_vec(),
+        vec![&b's']
+    );
 }

@@ -1,21 +1,24 @@
+use aoc_runner_derive::{aoc, aoc_generator};
 use std::cmp::{max, min};
-use std::collections::{HashSet};
+use std::collections::HashSet;
 use std::mem::take;
-use std::ops::{RangeInclusive, Add};
-use aoc_runner_derive::{aoc_generator, aoc};
+use std::ops::{Add, RangeInclusive};
 
 pub type GenData = Vec<(i64, i64, i64, i64)>;
 pub type InData<'a> = &'a [(i64, i64, i64, i64)];
 pub type OutData = usize;
 
-fn range_overlaps<T>(a: &RangeInclusive<T>, b: &RangeInclusive<T>) -> bool 
-    where T: Ord
+fn range_overlaps<T>(a: &RangeInclusive<T>, b: &RangeInclusive<T>) -> bool
+where
+    T: Ord,
 {
     !(a.end() < b.start() || b.end() < a.start())
 }
 
 fn range_adjacent<T>(a: &RangeInclusive<T>, b: &RangeInclusive<T>) -> bool
-    where T: Ord + Add<T> + From<i32> + Copy, <T as std::ops::Add>::Output: PartialEq<T>
+where
+    T: Ord + Add<T> + From<i32> + Copy,
+    <T as std::ops::Add>::Output: PartialEq<T>,
 {
     *a.end() + 1.into() == *b.start() || *b.end() + 1.into() == *a.start()
 }
@@ -27,13 +30,18 @@ pub struct RangeLine {
 
 impl RangeLine {
     fn new() -> RangeLine {
-        RangeLine { ranges_set: Vec::new()}
+        RangeLine {
+            ranges_set: Vec::new(),
+        }
     }
 
     fn set_range(&mut self, x: &RangeInclusive<i64>) {
         let mut x = x.clone();
         for idx in 0..self.ranges_set.len() {
-            while idx < self.ranges_set.len() && (range_overlaps(&x, &self.ranges_set[idx]) || range_adjacent(&x, &self.ranges_set[idx])) {
+            while idx < self.ranges_set.len()
+                && (range_overlaps(&x, &self.ranges_set[idx])
+                    || range_adjacent(&x, &self.ranges_set[idx]))
+            {
                 let old = self.ranges_set.remove(idx);
                 let existing_min = *old.start();
                 let existing_max = *old.end();
@@ -48,8 +56,8 @@ impl RangeLine {
     fn unset_point(&mut self, pt: i64) {
         for idx in 0..self.ranges_set.len() {
             if self.ranges_set[idx].contains(&pt) {
-                let range_a = *self.ranges_set[idx].start()..=(pt-1);
-                let range_b = (pt+1)..=*(self.ranges_set[idx].end());
+                let range_a = *self.ranges_set[idx].start()..=(pt - 1);
+                let range_b = (pt + 1)..=*(self.ranges_set[idx].end());
                 self.ranges_set[idx] = range_a;
                 self.set_range(&range_b);
                 return;
@@ -58,11 +66,14 @@ impl RangeLine {
     }
 
     fn len(&self) -> i64 {
-        self.ranges_set.iter().map(|r| {
-            let e = *r.end();
-            let s = *r.start();
-            (e.abs_diff(s) + 1) as i64
-        }).sum()
+        self.ranges_set
+            .iter()
+            .map(|r| {
+                let e = *r.end();
+                let s = *r.start();
+                (e.abs_diff(s) + 1) as i64
+            })
+            .sum()
     }
 
     fn normalize(&mut self) {
@@ -118,11 +129,7 @@ pub fn solve_part1(input: InData) -> OutData {
     let mut mapped_spots: RangeLine = RangeLine::new();
     let mut beacon_spots: HashSet<i64> = HashSet::new();
 
-    let target_y = if cfg!(test) {
-        10i64
-    } else {
-        2_000_000i64
-    };
+    let target_y = if cfg!(test) { 10i64 } else { 2_000_000i64 };
 
     for (sensor_x, sensor_y, beacon_x, beacon_y) in input.iter() {
         let distance = (sensor_x.abs_diff(*beacon_x) + sensor_y.abs_diff(*beacon_y)) as i64;
@@ -158,13 +165,11 @@ const MAX_COORD: u32 = 4_000_000;
 
 const TUNING_ADJUST: i64 = 4_000_000;
 
-
 #[aoc(day15, part2)]
 pub fn solve_part2(input: InData) -> OutData {
-
     let mut grid: Vec<RangeLine> = Vec::new();
     for _ in 0..=MAX_COORD {
-        grid.push( RangeLine::new() );
+        grid.push(RangeLine::new());
     }
 
     for (sensor_x, sensor_y, beacon_x, beacon_y) in input.iter() {
@@ -185,7 +190,11 @@ pub fn solve_part2(input: InData) -> OutData {
 
     dbg!(grid.iter().map(|r| r.raw().capacity()).max());
 
-    for (idx, row) in grid.iter().enumerate().filter(|&(_, c)| c.ranges_count() > 1) {
+    for (idx, row) in grid
+        .iter()
+        .enumerate()
+        .filter(|&(_, c)| c.ranges_count() > 1)
+    {
         for x_val in 0..MAX_COORD {
             if !row.contains(x_val as i64) {
                 return ((x_val as i64) * TUNING_ADJUST) as usize + idx;
