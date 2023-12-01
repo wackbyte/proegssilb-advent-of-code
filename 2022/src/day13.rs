@@ -1,4 +1,4 @@
-use aoc_runner_derive::{aoc, aoc_generator};
+use aoc_zen_runner_macros::{aoc, generator, solver};
 use itertools::{EitherOrBoth, Itertools};
 use serde::{Deserialize, Serialize};
 use serde_json::from_str;
@@ -109,70 +109,72 @@ impl Display for IntOrList {
     }
 }
 
-pub type GenData = Vec<(IntOrList, IntOrList)>;
-pub type InData<'a> = &'a [(IntOrList, IntOrList)];
-pub type OutData = usize;
+#[aoc(2022, day13)]
+pub mod solutions {
+    use super::*;
 
-// Solution ---------------------------------------------------------
-// Choose One
+    pub type GenData = Vec<(IntOrList, IntOrList)>;
+    pub type OutData = usize;
 
-#[aoc_generator(day13, part1)]
-pub fn input_generator(input: &str) -> GenData {
-    let input = input.trim_start();
-    let pair_list = input.split("\n\n");
-    pair_list
-        .map(|s| s.split_once("\n").unwrap())
-        .map(|(a, b)| (from_str(a).unwrap(), from_str(b).unwrap()))
-        .collect_vec()
-}
-
-#[aoc(day13, part1)]
-pub fn solve_part1(input: InData) -> OutData {
-    input
-        .iter()
-        // .inspect(|(a, b)| {
-        //     println!("a: {}\nb: {}\nOrd: {:?}\n\n", a, b, a.partial_cmp(b))
-        // })
-        .enumerate()
-        .filter(|(_, (a, b))| a <= b)
-        .map(|(idx, _)| idx + 1)
-        .sum()
-}
-
-#[aoc_generator(day13, part2)]
-pub fn input_generator_p2(input: &str) -> Vec<IntOrList> {
-    let input = input.to_owned() + "\n[[2]]\n[[6]]\n";
-    input
-        .lines()
-        .filter(|s| s.trim() != "")
-        .map(|s| from_str(s).unwrap())
-        .collect_vec()
-}
-
-#[aoc(day13, part2)]
-pub fn solve_part2(input: &[IntOrList]) -> OutData {
-    let mut input = input.to_vec();
-    input.sort();
-    let mut two_idx: usize = input.len() + 3;
-    let mut six_idx: usize = input.len() + 3;
-
-    for (idx, i) in input.iter().enumerate() {
-        if *i == List(vec![List(vec![Int(2)])]) {
-            two_idx = min(two_idx, idx);
-        }
-        if *i == List(vec![List(vec![Int(6)])]) {
-            six_idx = min(six_idx, idx);
-        }
+    #[generator(mapmap)]
+    pub fn input_generator(input: &str) -> GenData {
+        let input = input.trim_start();
+        let pair_list = input.split("\n\n");
+        pair_list
+            .map(|s| s.split_once("\n").unwrap())
+            .map(|(a, b)| (from_str(a).unwrap(), from_str(b).unwrap()))
+            .collect_vec()
     }
 
-    two_idx = two_idx + 1;
-    six_idx = six_idx + 1;
+    #[solver(part1, draft)]
+    pub fn solve_part1(input: GenData) -> OutData {
+        input
+            .iter()
+            .enumerate()
+            .filter(|(_, (a, b))| a <= b)
+            .map(|(idx, _)| idx + 1)
+            .sum()
+    }
 
-    two_idx * six_idx
+    #[generator(filtermap)]
+    pub fn input_generator_p2(input: &str) -> Vec<IntOrList> {
+        let input = input.to_owned() + "\n[[2]]\n[[6]]\n";
+        input
+            .lines()
+            .filter(|s| s.trim() != "")
+            .map(|s| from_str(s).unwrap())
+            .collect_vec()
+    }
+
+    #[solver(part2, sortyhack)]
+    pub fn solve_part2(input: Vec<IntOrList>) -> OutData {
+        let mut input = input.to_vec();
+        input.sort();
+        let mut two_idx: usize = input.len() + 3;
+        let mut six_idx: usize = input.len() + 3;
+
+        for (idx, i) in input.iter().enumerate() {
+            if *i == List(vec![List(vec![Int(2)])]) {
+                two_idx = min(two_idx, idx);
+            }
+            if *i == List(vec![List(vec![Int(6)])]) {
+                six_idx = min(six_idx, idx);
+            }
+        }
+
+        two_idx = two_idx + 1;
+        six_idx = six_idx + 1;
+
+        two_idx * six_idx
+    }
 }
 
-#[allow(unused)]
-const TEST_IN: &str = r#"
+#[cfg(test)]
+pub mod test {
+    use aoc_zen_runner_macros::aoc_case;
+    
+    #[aoc_case(13, 140)]
+    const test_in: &str = r#"
 [1,1,3,1,1]
 [1,1,5,1,1]
 
@@ -198,12 +200,4 @@ const TEST_IN: &str = r#"
 [1,[2,[3,[4,[5,6,0]]]],8,9]
 "#;
 
-#[test]
-pub fn test_d13_part1() {
-    assert_eq!(solve_part1(&input_generator(TEST_IN)), 13);
-}
-
-#[test]
-pub fn test_d13_part2() {
-    assert_eq!(solve_part2(&input_generator_p2(TEST_IN)), 140);
 }

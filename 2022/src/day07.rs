@@ -1,8 +1,7 @@
 use std::collections::HashMap;
 
-use aoc_runner_derive::{aoc, aoc_generator};
-
-pub type Day7Output = u64;
+use aoc_zen_runner_macros::aoc;
+use aoc_zen_runner_macros::generator;
 
 #[derive(Debug)]
 pub enum DataLine {
@@ -85,39 +84,6 @@ impl Folder {
     }
 }
 
-#[aoc_generator(day07, default)]
-pub fn day07_generator(input: &str) -> Vec<DataLine> {
-    let mut results: Vec<DataLine> = Vec::new();
-    for line in input.lines() {
-        let data = match line.as_bytes()[0] {
-            b'$' => {
-                if line.trim() == "$ ls" {
-                    DataLine::CommandLs
-                } else {
-                    let (_, cmd) = (*line).split_once(" ").unwrap();
-                    let (_, dir) = cmd.split_once(" ").unwrap();
-                    match dir {
-                        "/" => DataLine::CommandCdToRoot,
-                        ".." => DataLine::CommandCdUpdir,
-                        _ => DataLine::CommandCdToSubdir(dir.to_string()),
-                    }
-                }
-            }
-            b'd' => DataLine::ListingDirectory(
-                line.split_whitespace().skip(1).next().unwrap().to_string(),
-            ),
-            b'0' | b'1' | b'2' | b'3' | b'4' | b'5' | b'6' | b'7' | b'8' | b'9' => {
-                let (size, name) = line.split_once(" ").unwrap();
-                DataLine::ListingFile(size.parse().unwrap(), name.to_string())
-            }
-            _ => panic!("Unknown line: '{}'", line),
-        };
-        results.push(data)
-    }
-
-    results
-}
-
 fn build_fs_step(term: &mut Terminal, cmd: &DataLine) {
     match cmd {
         DataLine::CommandCdToRoot => term.current_dir = Vec::new(),
@@ -150,33 +116,104 @@ fn build_fs_step(term: &mut Terminal, cmd: &DataLine) {
     };
 }
 
-#[aoc(day07, part1, default)]
-pub fn solve_part1(input: &[DataLine]) -> Day7Output {
-    let mut t = Terminal::new();
-    for dl in input {
-        build_fs_step(&mut t, dl);
-    }
+#[aoc(2022, day07)]
+pub mod solutions {
+    use aoc_zen_runner_macros::solver;
 
-    let Terminal {
-        current_dir: mut _dir,
-        mut fs,
-    } = t;
+    use super::*;
 
-    fs.compute_size();
+    pub type Day7Output = u64;
 
-    let mut sum = 0u64;
-
-    for f in fs.get_all_folders() {
-        if f.size < 100_000 {
-            sum += f.size;
+    #[generator(draft)]
+    pub fn day07_generator(input: &str) -> Vec<DataLine> {
+        let mut results: Vec<DataLine> = Vec::new();
+        for line in input.lines() {
+            let data = match line.as_bytes()[0] {
+                b'$' => {
+                    if line.trim() == "$ ls" {
+                        DataLine::CommandLs
+                    } else {
+                        let (_, cmd) = (*line).split_once(" ").unwrap();
+                        let (_, dir) = cmd.split_once(" ").unwrap();
+                        match dir {
+                            "/" => DataLine::CommandCdToRoot,
+                            ".." => DataLine::CommandCdUpdir,
+                            _ => DataLine::CommandCdToSubdir(dir.to_string()),
+                        }
+                    }
+                }
+                b'd' => DataLine::ListingDirectory(
+                    line.split_whitespace().skip(1).next().unwrap().to_string(),
+                ),
+                b'0' | b'1' | b'2' | b'3' | b'4' | b'5' | b'6' | b'7' | b'8' | b'9' => {
+                    let (size, name) = line.split_once(" ").unwrap();
+                    DataLine::ListingFile(size.parse().unwrap(), name.to_string())
+                }
+                _ => panic!("Unknown line: '{}'", line),
+            };
+            results.push(data)
         }
+
+        results
     }
 
-    sum
+    #[solver(part1, default)]
+    pub fn solve_part1(input: Vec<DataLine>) -> Day7Output {
+        let mut t = Terminal::new();
+        for dl in input {
+            build_fs_step(&mut t, &dl);
+        }
+
+        let Terminal {
+            current_dir: mut _dir,
+            mut fs,
+        } = t;
+
+        fs.compute_size();
+
+        let mut sum = 0u64;
+
+        for f in fs.get_all_folders() {
+            if f.size < 100_000 {
+                sum += f.size;
+            }
+        }
+
+        sum
+    }
+
+    #[solver(part2, draft)]
+    pub fn solve_part2(input: Vec<DataLine>) -> Day7Output {
+        let mut t = Terminal::new();
+        for dl in input {
+            build_fs_step(&mut t, &dl);
+        }
+
+        let Terminal {
+            current_dir: mut _dir,
+            mut fs,
+        } = t;
+
+        fs.compute_size();
+
+        let free_space = 70000000 - fs.size;
+        let space_needed = 30000000 - free_space;
+
+        fs.get_all_folders()
+            .into_iter()
+            .map(|f| f.size)
+            .filter(|s| *s > space_needed)
+            .min()
+            .unwrap()
+    }
 }
 
-#[allow(unused)]
-const TEST_INPUT1_STR: &str = r#"$ cd /
+#[cfg(test)]
+mod test {
+    use aoc_zen_runner_macros::aoc_case;
+
+    #[aoc_case(95437, 24933642)]
+    const test_input1_str: &str = r#"$ cd /
 $ ls
 dir a
 14848514 b.txt
@@ -200,38 +237,4 @@ $ ls
 5626152 d.ext
 7214296 k
 "#;
-
-#[test]
-pub fn test_part1() {
-    assert_eq!(solve_part1(&day07_generator(TEST_INPUT1_STR)), 95437);
-}
-
-#[aoc(day07, part2, default)]
-pub fn solve_part2(input: &[DataLine]) -> Day7Output {
-    let mut t = Terminal::new();
-    for dl in input {
-        build_fs_step(&mut t, dl);
-    }
-
-    let Terminal {
-        current_dir: mut _dir,
-        mut fs,
-    } = t;
-
-    fs.compute_size();
-
-    let free_space = 70000000 - fs.size;
-    let space_needed = 30000000 - free_space;
-
-    fs.get_all_folders()
-        .into_iter()
-        .map(|f| f.size)
-        .filter(|s| *s > space_needed)
-        .min()
-        .unwrap()
-}
-
-#[test]
-pub fn test_part2() {
-    assert_eq!(solve_part2(&day07_generator(TEST_INPUT1_STR)), 24933642);
 }
