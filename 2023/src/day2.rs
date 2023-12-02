@@ -1,7 +1,5 @@
 use std::cmp::max;
 
-use chumsky::prelude::*;
-
 use aoc_zen_runner_macros::{aoc, generator, solution, solver};
 
 #[aoc(2023, day2)]
@@ -168,7 +166,9 @@ pub mod solutions {
         }
     }
 
-    pub fn parser<'a>() -> impl Parser<char, Vec<Game>, Error = Simple<char>> {
+    pub fn parser<'a>() -> impl chumsky::Parser<char, Vec<Game>, Error = chumsky::error::Simple<char>> {
+        use chumsky::prelude::*;
+
         let color = text::keyword("red").to(Color::Red)
             .or(text::keyword("green").to(Color::Green))
             .or(text::keyword("blue").to(Color::Blue))
@@ -197,16 +197,96 @@ pub mod solutions {
         game.repeated()
     }
 
+    pub fn parser1<'a>() -> impl chumsky1::Parser<
+        'a,
+        &'a str,
+        Vec<Game>,
+        chumsky1::extra::Err<chumsky1::error::Simple<'a, char>>,
+    > {
+        use chumsky1::prelude::*;
+
+        let color = text::keyword("red")
+            .to(Color::Red)
+            .or(text::keyword("green").to(Color::Green))
+            .or(text::keyword("blue").to(Color::Blue))
+            .padded();
+
+        let component = text::int(10)
+            .from_str::<u8>()
+            .unwrapped()
+            .padded()
+            .then(color)
+            .map(|(n, c)| Component(n, c));
+
+        let grab = component
+            .clone()
+            .padded()
+            .map(|cs| Grab::default().set_component(cs))
+            .foldl(
+                just(',').ignore_then(component.padded()).repeated(),
+                |g, c| g.set_component(c),
+            );
+
+        let grabs =
+            grab.clone()
+                .padded()
+                .foldl(just(';').ignore_then(grab.padded()).repeated(), |a, b| {
+                    Grab {
+                        red: max(a.red, b.red),
+                        green: max(a.green, b.green),
+                        blue: max(a.blue, b.blue),
+                    }
+                });
+
+        let game = text::keyword("Game")
+            .padded()
+            .ignore_then(text::int(10).padded().from_str::<u8>().unwrapped())
+            .then_ignore(just(':').padded())
+            .then(grabs)
+            .map(|(n, gs)| Game(n as u32, gs));
+
+        game.repeated().collect()
+    }
+
     #[generator(chumsky)]
     pub fn chumsky_parser(input: &str) -> Vec<Game> {
+        use chumsky::prelude::*;
+
         parser().parse(input).unwrap()
+    }
+
+    #[generator(chumsky1)]
+    pub fn chumsky1_parser(input: &str) -> Vec<Game> {
+        use chumsky1::prelude::*;
+
+        parser1().parse(input).unwrap()
     }
 
     #[solver(part1, chumsky)]
     pub fn part1_chumsky(input: Vec<Game>) -> u32 {
-        input.into_iter()
-            .filter(|Game(_, grb)| grb.red <= 12 && grb.green <= 13 && grb.blue <= 14 )
-            .map(|Game(n, _)| n)
+        input
+            .into_iter()
+            .filter_map(|Game(n, grb)| {
+                if grb.red <= 12 && grb.green <= 13 && grb.blue <= 14 {
+                    Some(n)
+                } else {
+                    None
+                }
+            })
+            .sum()
+    }
+
+    #[solver(part1, chumsky1)]
+    pub fn part1_chumsky1(input: Vec<Game>) -> u32 {
+        input
+            .into_iter()
+            .filter_map(|Game(n, grb)| {
+                if grb.red <= 12 && grb.green <= 13 && grb.blue <= 14 {
+                    Some(n)
+                } else {
+                    None
+                }
+            })
             .sum()
     }
 
