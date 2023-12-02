@@ -5,8 +5,12 @@ authors = []
 edition = "2021"
 
 [[bin]]
-name = "day1"
+name = "2023-day1"
 path = "src/day1.rs"
+
+[[bin]]
+name = "2023-day2"
+path = "src/day2.rs"
 
 [dependencies]
 aoc-zen-runner-macros = "0.1.0"
