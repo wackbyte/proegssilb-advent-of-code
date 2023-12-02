@@ -1,9 +1,11 @@
+use std::cmp::max;
+
+use chumsky::prelude::*;
+
 use aoc_zen_runner_macros::{aoc, generator, solution, solver};
 
 #[aoc(2023, day2)]
 pub mod solutions {
-    use std::cmp::max;
-
     use super::*;
 
     // #[generator(gen)]
@@ -126,6 +128,88 @@ pub mod solutions {
         tally
     }
 
+    // ---- Chumsky Draft ----
+    pub struct Game(u32, Grab);
+
+    #[derive(Default)]
+    pub struct Grab {
+        red: u8,
+        green: u8,
+        blue: u8,
+    }
+
+    impl Grab {
+        fn set_component(self, c: Component) -> Grab {
+            match c {
+                Component(n, Color::Red) => Grab { red: n, green: self.green, blue: self.blue },
+                Component(n, Color::Green) => Grab { red: self.red, green: n, blue: self.blue },
+                Component(n, Color::Blue) => Grab { red: self.red, green: self.green, blue: n },
+            }            
+        }
+    }
+
+    pub struct Component(u8, Color);
+
+    #[derive(Clone)]
+    pub enum Color {
+        Red,
+        Green,
+        Blue,
+    }
+
+    impl Color {
+        fn from_str(color: &str) -> Color {
+            match color {
+                "red" | "r" => Color::Red,
+                "green" | "g" => Color::Green,
+                "blue" | "b" => Color::Blue,
+                _ => unreachable!(),
+            }
+        }
+    }
+
+    pub fn parser<'a>() -> impl Parser<char, Vec<Game>, Error = Simple<char>> {
+        let color = text::keyword("red").to(Color::Red)
+            .or(text::keyword("green").to(Color::Green))
+            .or(text::keyword("blue").to(Color::Blue))
+            .padded();
+
+        let component = text::int(10).map(|x: String| x.parse::<u8>().unwrap()).padded().then(color).map(|(n, c)| Component(n, c));
+
+        let grab = component
+            .padded()
+            .separated_by(just(','))
+            .map(|cs| (Grab::default(), cs))
+            .foldl(|g, c| g.set_component(c));
+
+        let grabs = grab.clone()
+            .padded()
+            .then(just(';').then(grab.padded()).repeated())
+            .foldl(|a: Grab, (_, b)| Grab {red: max(a.red, b.red), green: max(a.green, b.green), blue: max(a.blue, b.blue)});
+
+        let game = text::keyword("Game")
+            .padded()
+            .then(text::int(10).padded().map(|x: String| x.parse::<u8>().unwrap()))
+            .then(just(':').padded())
+            .then(grabs)
+            .map(|(((_, n), _), gs)| Game(n as u32, gs));
+
+        game.repeated()
+    }
+
+    #[generator(chumsky)]
+    pub fn chumsky_parser(input: &str) -> Vec<Game> {
+        parser().parse(input).unwrap()
+    }
+
+    #[solver(part1, chumsky)]
+    pub fn part1_chumsky(input: Vec<Game>) -> u32 {
+        input.into_iter()
+            .filter(|Game(_, grb)| grb.red <= 12 && grb.green <= 13 && grb.blue <= 14 )
+            .map(|Game(n, _)| n)
+            .sum()
+    }
+
     // ----------------------- Part 2 -----------------------
     #[solution(part2, draft_soln)]
     pub fn part2_draft(input: &str) -> u32 {
@@ -163,34 +247,32 @@ pub mod solutions {
                         count_val = count_val * 10 + (c - b'0');
                     }
                 }
-                Seeking::Color => {
-                    match c {
-                        b'r' => {
-                            min_red = max(min_red, count_val as u32);
-                            state = Seeking::Delimeter;
-                        }
-                        b'g' => {
-                            min_green = max(min_green, count_val as u32);
-                            state = Seeking::Delimeter;
-                        }
-                        b'b' => {
-                            min_blue = max(min_blue, count_val as u32);
-                            state = Seeking::Delimeter;
-                        }
-                        b' ' => {
-                            continue;
-                        }
-                        b',' => {
-                            unreachable!("comma while seeking a color");
-                        }
-                        b';' => {
-                            unreachable!("semicolon while seeking a color");
-                        }
-                        _ => {
-                            unreachable!("'{}' while seeking a color", *c as char);
-                        }
+                Seeking::Color => match c {
+                    b'r' => {
+                        min_red = max(min_red, count_val as u32);
+                        state = Seeking::Delimeter;
                     }
-                }
+                    b'g' => {
+                        min_green = max(min_green, count_val as u32);
+                        state = Seeking::Delimeter;
+                    }
+                    b'b' => {
+                        min_blue = max(min_blue, count_val as u32);
+                        state = Seeking::Delimeter;
+                    }
+                    b' ' => {
+                        continue;
+                    }
+                    b',' => {
+                        unreachable!("comma while seeking a color");
+                    }
+                    b';' => {
+                        unreachable!("semicolon while seeking a color");
+                    }
+                    _ => {
+                        unreachable!("'{}' while seeking a color", *c as char);
+                    }
+                },
                 Seeking::Delimeter => match c {
                     b',' => {
                         count_val = 0;
